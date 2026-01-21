@@ -1,7 +1,7 @@
 // public/app.js
 // PuttingTracker (mobile-first)
-// Dashboard loads from /puttingtracker/api/stats.php (no full history fetch)
-// Workout saves in localStorage, submits to /puttingtracker/api/sessions.php (JSON schema v1.0)
+// Dashboard loads from /puttingtracker/api/stats.php
+// Workout submits to /puttingtracker/api/sessions.php
 
 const API_SESSIONS = "/puttingtracker/api/sessions.php";
 const API_STATS = "/puttingtracker/api/stats.php";
@@ -10,41 +10,16 @@ const LS_PLAYER = "PuttingTracker.playerId";
 const LS_CURRENT = "PuttingTracker.currentSession";
 
 const GAMES = [
-  {
-    gameId: "home_base",
-    title: "Home Base",
-    pbBetter: "na",
-    instructions:
-      "Check alignment and strike quality through the gate.\n(No data — just confirm you did it.)"
-  },
-  {
-    gameId: "touch_drill",
-    title: "Touch Drill",
-    pbBetter: "lower",
-    instructions:
-      "Setup markers at fixed distances.\nGoal: achieve 4 in a row at each distance.\nScore: attempts needed to complete."
-  },
-  {
-    gameId: "lag_distance",
-    title: "Lag Distance",
-    pbBetter: "lower",
-    instructions:
-      "Random putts over 32ft.\nObjective: get score over 10 points.\nScore: putts needed to reach the target."
-  },
-  {
-    gameId: "short_makes",
-    title: "Short Makes",
-    pbBetter: "higher",
-    instructions:
-      "Distances: H1 3,4,5 | H2 4,5,6 | H3 6,7,8 | H4 8,9,10\n18 putts. Score: makes. Baseline: 12."
-  },
-  {
-    gameId: "mid_makes",
-    title: "Mid Makes",
-    pbBetter: "higher",
-    instructions:
-      "Distances: H1 3,5,7 | H2 5,7,9 | H3 7,9,11 | H4 13,15,17\n18 putts. Score: makes. Baseline: 9."
-  }
+  { gameId: "home_base", title: "Home Base", pbBetter: "na",
+    instructions: "Check alignment and strike quality through the gate.\n(No data — just confirm you did it.)" },
+  { gameId: "touch_drill", title: "Touch Drill", pbBetter: "lower",
+    instructions: "Setup markers at fixed distances.\nGoal: achieve 4 in a row at each distance.\nScore: attempts needed to complete." },
+  { gameId: "lag_distance", title: "Lag Distance", pbBetter: "lower",
+    instructions: "Random putts over 32ft.\nObjective: get score over 10 points.\nScore: putts needed to reach the target." },
+  { gameId: "short_makes", title: "Short Makes", pbBetter: "higher",
+    instructions: "Distances: H1 3,4,5 | H2 4,5,6 | H3 6,7,8 | H4 8,9,10\n18 putts. Score: makes. Baseline: 12." },
+  { gameId: "mid_makes", title: "Mid Makes", pbBetter: "higher",
+    instructions: "Distances: H1 3,5,7 | H2 5,7,9 | H3 7,9,11 | H4 13,15,17\n18 putts. Score: makes. Baseline: 9." }
 ];
 
 const DISTANCES = {
@@ -81,6 +56,8 @@ const workoutTitle = document.getElementById("workoutTitle");
 const workoutMeta = document.getElementById("workoutMeta");
 
 const carouselTrack = document.getElementById("carouselTrack");
+const carouselViewport = carouselTrack.parentElement; // .carousel (viewport)
+
 const dots = document.getElementById("dots");
 
 const settingsModal = document.getElementById("settingsModal");
@@ -104,62 +81,35 @@ let activeGameIndex = 0;
 function uid(prefix) {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 6)}`;
 }
-
-function nowIsoUTC() {
-  // Z is a timezone and is accepted by our backend ISO check
-  return new Date().toISOString();
-}
-
+function nowIsoUTC() { return new Date().toISOString(); }
 function escapeHtml(s) {
   return String(s ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
-
-function clamp(n, a, b) {
-  return Math.max(a, Math.min(b, n));
-}
-
-function showDashboard() {
-  viewWorkout.classList.add("hidden");
-  viewDashboard.classList.remove("hidden");
-}
-
-function showWorkout() {
-  viewDashboard.classList.add("hidden");
-  viewWorkout.classList.remove("hidden");
-}
+function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+function showDashboard(){ viewWorkout.classList.add("hidden"); viewDashboard.classList.remove("hidden"); }
+function showWorkout(){ viewDashboard.classList.add("hidden"); viewWorkout.classList.remove("hidden"); }
 
 // -------------------- Local Storage --------------------
 function loadPlayerId() {
   const v = localStorage.getItem(LS_PLAYER);
   return v && v.trim() ? v.trim() : "ply_001";
 }
-
 function savePlayerId(v) {
   playerId = (v || "").trim() || "ply_001";
   localStorage.setItem(LS_PLAYER, playerId);
   renderPlayerLine();
 }
-
 function loadCurrentSession() {
   const raw = localStorage.getItem(LS_CURRENT);
   if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  try { return JSON.parse(raw); } catch { return null; }
 }
-
 function saveCurrentSession() {
   if (!currentSession) return;
   localStorage.setItem(LS_CURRENT, JSON.stringify(currentSession));
 }
-
 function clearCurrentSession() {
   currentSession = null;
   localStorage.removeItem(LS_CURRENT);
@@ -168,16 +118,12 @@ function clearCurrentSession() {
 // -------------------- API --------------------
 async function getStats() {
   const url = `${API_STATS}?playerId=${encodeURIComponent(playerId)}`;
-  const res = await fetch(url, { method: "GET" });
+  const res = await fetch(url);
   const text = await res.text();
-  let json = null;
-  try {
-    json = JSON.parse(text);
-  } catch {}
+  let json = null; try { json = JSON.parse(text); } catch {}
   if (!res.ok) throw new Error(`Stats failed: ${res.status} ${json ? JSON.stringify(json) : text}`);
   return json;
 }
-
 async function postSession(envelope) {
   const res = await fetch(API_SESSIONS, {
     method: "POST",
@@ -185,10 +131,7 @@ async function postSession(envelope) {
     body: JSON.stringify(envelope)
   });
   const text = await res.text();
-  let json = null;
-  try {
-    json = JSON.parse(text);
-  } catch {}
+  let json = null; try { json = JSON.parse(text); } catch {}
   if (!res.ok) throw new Error(`POST failed: ${res.status} ${json ? JSON.stringify(json) : text}`);
   return json ?? { ok: true };
 }
@@ -197,36 +140,25 @@ async function postSession(envelope) {
 function isGameComplete(game) {
   if (!game?.completed) return false;
 
-  if (game.gameId === "touch_drill") {
-    return Number.isFinite(game?.result?.attemptsToComplete);
-  }
-  if (game.gameId === "lag_distance") {
-    return Number.isFinite(game?.result?.puttsToReachTarget);
-  }
+  if (game.gameId === "touch_drill") return Number.isFinite(game?.result?.attemptsToComplete);
+  if (game.gameId === "lag_distance") return Number.isFinite(game?.result?.puttsToReachTarget);
+
   if (game.gameId === "short_makes" || game.gameId === "mid_makes") {
     const holes = game?.result?.holes || [];
     if (holes.length !== 4) return false;
-
     for (const h of holes) {
       const putts = h.putts || {};
       const keys = Object.keys(putts);
       if (keys.length !== 3) return false;
-      for (const k of keys) {
-        const v = putts[k];
-        if (!(v === 0 || v === 1)) return false;
-      }
+      for (const k of keys) if (!(putts[k] === 0 || putts[k] === 1)) return false;
     }
     return true;
   }
-
-  // home_base
-  return true;
+  return true; // home_base
 }
-
 function countCompletedGames(env) {
-  return (env.session.games || []).filter((g) => isGameComplete(g)).length;
+  return (env.session.games || []).filter(isGameComplete).length;
 }
-
 function scoreMakesGame(game) {
   const holes = game?.result?.holes || [];
   let makes = 0;
@@ -235,33 +167,22 @@ function scoreMakesGame(game) {
     for (const k of Object.keys(putts)) if (putts[k] === 1) makes += 1;
   }
   const baseline = game.result.baseline ?? 0;
-  game.result.score = {
-    makes,
-    deltaVsBaseline: makes - baseline
-  };
+  game.result.score = { makes, deltaVsBaseline: makes - baseline };
 }
 
-// -------------------- Session model (your schema) --------------------
+// -------------------- Session model --------------------
 function blankMakesResult(gameId) {
   const baseline = BASELINES[gameId];
-  const holes = DISTANCES[gameId].map((h) => {
+  const holes = DISTANCES[gameId].map(h => {
     const putts = {};
-    for (const d of h.distances) putts[`${d}ft`] = null; // unset until user taps
+    for (const d of h.distances) putts[`${d}ft`] = null;
     return { hole: h.hole, putts };
   });
-
-  return {
-    baseline,
-    totalPutts: 18,
-    holes,
-    score: { makes: 0, deltaVsBaseline: -baseline }
-  };
+  return { baseline, totalPutts: 18, holes, score: { makes: 0, deltaVsBaseline: -baseline } };
 }
-
 function newSessionEnvelope() {
   const startedAt = nowIsoUTC();
   const sessionId = uid("sess");
-
   return {
     schemaVersion: "1.0",
     app: "PuttingTracker",
@@ -272,37 +193,22 @@ function newSessionEnvelope() {
       playerId,
       games: [
         { gameId: "home_base", completed: false },
-        {
-          gameId: "touch_drill",
-          completed: false,
-          result: { attemptsToComplete: null, distancesFtUsed: [3, 6, 9, 12] }
-        },
-        {
-          gameId: "lag_distance",
-          completed: false,
-          result: { puttsToReachTarget: null, targetPoints: 10, minStartDistanceFt: 32 }
-        },
+        { gameId: "touch_drill", completed: false, result: { attemptsToComplete: null, distancesFtUsed: [3,6,9,12] } },
+        { gameId: "lag_distance", completed: false, result: { puttsToReachTarget: null, targetPoints: 10, minStartDistanceFt: 32 } },
         { gameId: "short_makes", completed: false, result: blankMakesResult("short_makes") },
         { gameId: "mid_makes", completed: false, result: blankMakesResult("mid_makes") }
       ],
-      summary: {
-        gamesCompleted: 0,
-        submitted: false,
-        overallNotes: ""
-      }
+      summary: { gamesCompleted: 0, submitted: false, overallNotes: "" }
     }
   };
 }
 
-// -------------------- Dashboard rendering (from /api/stats) --------------------
-function renderPlayerLine() {
-  playerLine.textContent = `Player: ${playerId}`;
-}
+// -------------------- Dashboard --------------------
+function renderPlayerLine(){ playerLine.textContent = `Player: ${playerId}`; }
 
 function renderDashboardFromStats(stats) {
   const count = stats?.meta?.sessionsCount;
   historyMeta.textContent = Number.isFinite(count) ? `Sessions: ${count}` : "Stats loaded";
-
   scoresList.innerHTML = "";
 
   for (const gdef of GAMES) {
@@ -337,53 +243,44 @@ function renderDashboardFromStats(stats) {
 
 // -------------------- Resume banner --------------------
 function sessionProgress(env) {
-  if (!env?.session?.games) return { completed: 0, total: 0 };
-  const total = env.session.games.length;
-  const completed = env.session.games.filter(isGameComplete).length;
+  const total = env?.session?.games?.length ?? 0;
+  const completed = total ? env.session.games.filter(isGameComplete).length : 0;
   return { completed, total };
 }
-
 function renderResumeBanner() {
   const env = loadCurrentSession();
-  if (!env) {
-    resumeBanner.classList.add("hidden");
-    return;
-  }
+  if (!env) { resumeBanner.classList.add("hidden"); return; }
 
   const p = sessionProgress(env);
   const pid = env?.session?.playerId;
   const id = env?.session?.sessionId;
 
-  if (pid && pid !== playerId) {
-    resumeMeta.textContent = `Saved session ${id} belongs to ${pid} (you are ${playerId}).`;
-  } else {
-    resumeMeta.textContent = `Session ${id} • Completed ${p.completed}/${p.total}`;
-  }
+  resumeMeta.textContent = (pid && pid !== playerId)
+    ? `Saved session ${id} belongs to ${pid} (you are ${playerId}).`
+    : `Session ${id} • Completed ${p.completed}/${p.total}`;
 
   resumeBanner.classList.remove("hidden");
 }
 
-// -------------------- Workout rendering --------------------
+// -------------------- Workout --------------------
 function updateSubmitState() {
-  if (!currentSession) {
-    btnSubmitWorkout.disabled = true;
-    workoutMeta.textContent = "";
-    return;
-  }
+  if (!currentSession) { btnSubmitWorkout.disabled = true; workoutMeta.textContent = ""; return; }
   const completed = countCompletedGames(currentSession);
   const total = currentSession.session.games.length;
   btnSubmitWorkout.disabled = completed !== total;
   workoutMeta.textContent = `Completed ${completed}/${total}`;
 }
 
-function setActiveGame(index, skipAnim = false) {
+function setActiveGame(index, skipAnim=false) {
   activeGameIndex = clamp(index, 0, GAMES.length - 1);
 
-  const x = -activeGameIndex * carouselTrack.clientWidth;
+  const w = carouselViewport.clientWidth || carouselTrack.clientWidth;
+  const x = -activeGameIndex * w;
+
   carouselTrack.style.transition = skipAnim ? "none" : "transform 180ms ease";
   carouselTrack.style.transform = `translateX(${x}px)`;
 
-  [...dots.children].forEach((d, i) => d.classList.toggle("active", i === activeGameIndex));
+  [...dots.children].forEach((d,i)=>d.classList.toggle("active", i===activeGameIndex));
 }
 
 function renderWorkout() {
@@ -396,21 +293,17 @@ function renderWorkout() {
   dots.innerHTML = "";
 
   currentSession.session.games.forEach((game, idx) => {
-    const def = GAMES.find((g) => g.gameId === game.gameId);
+    const def = GAMES.find(g => g.gameId === game.gameId);
 
-    // Pre-score makes games so UI reflects current state
-    if (game.gameId === "short_makes" || game.gameId === "mid_makes") {
-      scoreMakesGame(game);
-    }
-
-    const card = document.createElement("div");
-    card.className = "game-card";
-    card.setAttribute("data-game-id", game.gameId);
+    if (game.gameId === "short_makes" || game.gameId === "mid_makes") scoreMakesGame(game);
 
     const badge = isGameComplete(game)
       ? `<span class="badge">Completed</span>`
       : `<span class="badge">In progress</span>`;
 
+    const card = document.createElement("div");
+    card.className = "game-card";
+    card.setAttribute("data-game-id", game.gameId);
     card.innerHTML = `
       <div class="game-head">
         <div>
@@ -419,7 +312,7 @@ function renderWorkout() {
         </div>
         ${badge}
       </div>
-      <div class="instructions">${escapeHtml(def?.instructions || "").replaceAll("\n", "<br>")}</div>
+      <div class="instructions">${escapeHtml(def?.instructions || "").replaceAll("\n","<br>")}</div>
       <div class="capture" id="cap_${escapeHtml(game.gameId)}"></div>
       <div class="actions">
         <button class="btn btn-secondary" data-action="markDone" data-game="${escapeHtml(game.gameId)}">Mark done</button>
@@ -445,11 +338,7 @@ function renderCaptureUI(game) {
   const wrap = document.createElement("div");
 
   if (game.gameId === "home_base") {
-    wrap.innerHTML = `
-      <div class="field">
-        <span class="help">No data to capture for Home Base. Use “Mark done” when complete.</span>
-      </div>
-    `;
+    wrap.innerHTML = `<div class="field"><span class="help">No data. Use “Mark done” when complete.</span></div>`;
     return wrap;
   }
 
@@ -458,7 +347,6 @@ function renderCaptureUI(game) {
       <label class="field">
         <span>Attempts to complete</span>
         <input inputmode="numeric" placeholder="e.g. 27" value="${game.result.attemptsToComplete ?? ""}" data-bind="touch_attempts" />
-        <span class="help">Lower is better.</span>
       </label>
       <label class="field">
         <span>Distances used (ft, comma-separated)</span>
@@ -474,15 +362,6 @@ function renderCaptureUI(game) {
       <label class="field">
         <span>Putts to reach ${game.result.targetPoints} points</span>
         <input inputmode="numeric" placeholder="e.g. 8" value="${game.result.puttsToReachTarget ?? ""}" data-bind="lag_putts" />
-        <span class="help">Lower is better.</span>
-      </label>
-      <label class="field">
-        <span>Min start distance (ft)</span>
-        <input inputmode="numeric" value="${game.result.minStartDistanceFt ?? 32}" data-bind="lag_min_start" />
-      </label>
-      <label class="field">
-        <span>Target points</span>
-        <input inputmode="numeric" value="${game.result.targetPoints ?? 10}" data-bind="lag_target" />
       </label>
     `;
     hookLagInputs(wrap, game);
@@ -494,11 +373,11 @@ function renderCaptureUI(game) {
     const container = document.createElement("div");
 
     for (const row of rows) {
-      const holeObj = game.result.holes.find((x) => x.hole === row.hole);
+      const holeObj = game.result.holes.find(x => x.hole === row.hole);
 
       const holeBlock = document.createElement("div");
       holeBlock.style.marginBottom = "12px";
-      holeBlock.innerHTML = `<div class="muted" style="margin:8px 0 8px;">Hole ${row.hole}</div>`;
+      holeBlock.innerHTML = `<div class="muted" style="margin:8px 0;">Hole ${row.hole}</div>`;
 
       const grid = document.createElement("div");
       grid.className = "grid";
@@ -517,7 +396,7 @@ function renderCaptureUI(game) {
           </div>
         `;
 
-        tile.querySelectorAll(".pill").forEach((p) => {
+        tile.querySelectorAll(".pill").forEach(p => {
           p.addEventListener("click", () => {
             const v = Number(p.getAttribute("data-set"));
             holeObj.putts[key] = v;
@@ -529,7 +408,8 @@ function renderCaptureUI(game) {
             currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
 
             saveCurrentSession();
-            renderWorkout(); // simple v1 rerender
+            renderWorkout();
+            renderResumeBanner();
           });
         });
 
@@ -543,18 +423,9 @@ function renderCaptureUI(game) {
     const scoreRow = document.createElement("div");
     scoreRow.className = "kpis";
     scoreRow.innerHTML = `
-      <div class="kpi">
-        <div class="label">Makes</div>
-        <div class="value">${game.result.score?.makes ?? 0}</div>
-      </div>
-      <div class="kpi">
-        <div class="label">Baseline</div>
-        <div class="value">${game.result.baseline}</div>
-      </div>
-      <div class="kpi">
-        <div class="label">Delta</div>
-        <div class="value">${game.result.score?.deltaVsBaseline ?? 0}</div>
-      </div>
+      <div class="kpi"><div class="label">Makes</div><div class="value">${game.result.score?.makes ?? 0}</div></div>
+      <div class="kpi"><div class="label">Baseline</div><div class="value">${game.result.baseline}</div></div>
+      <div class="kpi"><div class="label">Delta</div><div class="value">${game.result.score?.deltaVsBaseline ?? 0}</div></div>
     `;
     wrap.appendChild(container);
     wrap.appendChild(scoreRow);
@@ -575,9 +446,8 @@ function hookTouchInputs(root, game) {
 
     const dist = (distEl.value || "")
       .split(",")
-      .map((s) => parseInt(s.trim(), 10))
-      .filter((n) => Number.isFinite(n));
-
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => Number.isFinite(n));
     if (dist.length) game.result.distancesFtUsed = dist;
 
     game.completed = isGameComplete(game);
@@ -595,18 +465,9 @@ function hookTouchInputs(root, game) {
 
 function hookLagInputs(root, game) {
   const puttsEl = root.querySelector('[data-bind="lag_putts"]');
-  const minEl = root.querySelector('[data-bind="lag_min_start"]');
-  const targetEl = root.querySelector('[data-bind="lag_target"]');
-
   const commit = () => {
     const putts = parseInt((puttsEl.value || "").trim(), 10);
     game.result.puttsToReachTarget = Number.isFinite(putts) ? putts : null;
-
-    const minV = parseInt((minEl.value || "").trim(), 10);
-    game.result.minStartDistanceFt = Number.isFinite(minV) ? minV : 32;
-
-    const tar = parseInt((targetEl.value || "").trim(), 10);
-    game.result.targetPoints = Number.isFinite(tar) ? tar : 10;
 
     game.completed = isGameComplete(game);
     currentSession.session.endedAt = nowIsoUTC();
@@ -616,47 +477,60 @@ function hookLagInputs(root, game) {
     updateSubmitState();
     renderResumeBanner();
   };
-
   puttsEl.addEventListener("input", commit);
-  minEl.addEventListener("input", commit);
-  targetEl.addEventListener("input", commit);
 }
 
-// -------------------- Carousel swipe --------------------
+// -------------------- Swipe (fixed) --------------------
 function attachSwipe() {
   let startX = 0;
   let currentX = 0;
   let dragging = false;
 
-  carouselTrack.addEventListener("pointerdown", (e) => {
+  const isInteractive = (el) => !!el.closest("button, a, input, textarea, select, label");
+
+  carouselViewport.addEventListener("pointerdown", (e) => {
+    // Don't initiate swipe when tapping controls
+    if (isInteractive(e.target)) return;
+
     dragging = true;
     startX = e.clientX;
     currentX = startX;
-    carouselTrack.setPointerCapture(e.pointerId);
+
+    carouselViewport.setPointerCapture(e.pointerId);
     carouselTrack.style.transition = "none";
   });
 
-  carouselTrack.addEventListener("pointermove", (e) => {
+  carouselViewport.addEventListener("pointermove", (e) => {
     if (!dragging) return;
     currentX = e.clientX;
+
     const dx = currentX - startX;
-    const base = -activeGameIndex * carouselTrack.clientWidth;
+    const w = carouselViewport.clientWidth || carouselTrack.clientWidth;
+    const base = -activeGameIndex * w;
+
     carouselTrack.style.transform = `translateX(${base + dx}px)`;
   });
 
-  const end = () => {
+  const end = (e) => {
     if (!dragging) return;
     dragging = false;
+
+    try { carouselViewport.releasePointerCapture(e.pointerId); } catch {}
+
     const dx = currentX - startX;
-    const threshold = carouselTrack.clientWidth * 0.18;
+    const w = carouselViewport.clientWidth || carouselTrack.clientWidth;
+    const threshold = w * 0.18;
 
     if (dx > threshold) setActiveGame(activeGameIndex - 1);
     else if (dx < -threshold) setActiveGame(activeGameIndex + 1);
     else setActiveGame(activeGameIndex);
+
+    // Allow clicks to work normally after swipe ends
   };
 
-  carouselTrack.addEventListener("pointerup", end);
-  carouselTrack.addEventListener("pointercancel", end);
+  carouselViewport.addEventListener("pointerup", end);
+  carouselViewport.addEventListener("pointercancel", end);
+
   window.addEventListener("resize", () => setActiveGame(activeGameIndex, true));
 }
 
@@ -685,19 +559,20 @@ btnSubmitWorkout.addEventListener("click", async () => {
   try {
     if (!currentSession) return;
 
-    currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
-    currentSession.session.endedAt = nowIsoUTC();
-
     // Ensure makes games are scored
     for (const g of currentSession.session.games) {
       if (g.gameId === "short_makes" || g.gameId === "mid_makes") scoreMakesGame(g);
     }
+
+    currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
+    currentSession.session.endedAt = nowIsoUTC();
 
     await postSession(currentSession);
 
     clearCurrentSession();
     await loadAndRenderStats();
     showDashboard();
+    renderResumeBanner();
     alert("Workout submitted ✅");
   } catch (e) {
     console.error(e);
@@ -705,19 +580,18 @@ btnSubmitWorkout.addEventListener("click", async () => {
   }
 });
 
-// Mark done button (event delegation)
+// Mark done button (delegated) — now works reliably
 carouselTrack.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-action='markDone']");
   if (!btn || !currentSession) return;
 
   const gameId = btn.getAttribute("data-game");
-  const game = currentSession.session.games.find((g) => g.gameId === gameId);
+  const game = currentSession.session.games.find(g => g.gameId === gameId);
   if (!game) return;
 
   if (gameId === "home_base") {
     game.completed = true;
   } else {
-    // Require required fields before marking done
     if (!isGameComplete(game)) {
       alert("Finish the fields for this game first.");
       return;
@@ -739,11 +613,7 @@ btnSettings.addEventListener("click", () => {
   playerIdInput.value = playerId;
   settingsModal.classList.remove("hidden");
 });
-
-btnCloseSettings.addEventListener("click", () => {
-  settingsModal.classList.add("hidden");
-});
-
+btnCloseSettings.addEventListener("click", () => settingsModal.classList.add("hidden"));
 btnSavePlayer.addEventListener("click", async () => {
   savePlayerId(playerIdInput.value);
   settingsModal.classList.add("hidden");
@@ -758,7 +628,6 @@ btnResume.addEventListener("click", () => {
   showWorkout();
   renderWorkout();
 });
-
 btnResetWorkout.addEventListener("click", () => {
   if (!confirm("Reset the current workout? This clears the in-progress session on this device.")) return;
   clearCurrentSession();

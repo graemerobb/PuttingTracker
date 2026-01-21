@@ -136,10 +136,15 @@ body{
   color:var(--muted);
 }
 
-.carousel{margin-top:10px;}
+
+.carousel{
+  overflow: hidden;
+  margin-top:10px;
+}
 .carousel-track{
+  overflow: visible;           /* was hidden */
+  will-change: transform;
   display:flex;
-  overflow:hidden;
   border-radius:16px;
   border:1px solid var(--border);
   touch-action: pan-y;
