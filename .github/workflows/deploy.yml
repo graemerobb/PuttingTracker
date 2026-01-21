@@ -36,8 +36,8 @@ jobs:
             rsync -av --delete "$APP_DIR/api/" "$WEB_ROOT/api/"
 
             # 3) Deploy control files into data/ (safe)
-            rsync -av "$APP_DIR/data/.htaccess" "$WEB_ROOT/data/.htaccess"
-            rsync -av "$APP_DIR/data/.gitignore" "$WEB_ROOT/data/.gitignore"
+            #rsync -av "$APP_DIR/data/.htaccess" "$WEB_ROOT/data/.htaccess"
+            #rsync -av "$APP_DIR/data/.gitignore" "$WEB_ROOT/data/.gitignore"
 
             # 4) Ensure the JSONL store exists and persists
             touch "$WEB_ROOT/data/sessions.jsonl"
