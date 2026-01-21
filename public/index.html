@@ -7,11 +7,87 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>PuttingTracker</h1>
-    <p id="status">Hello world - changed and pulled 👋</p>
-    <button id="btn">Click me</button>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">⛳️</div>
+      <div>
+        <div class="title">PuttingTracker</div>
+        <div class="subtitle" id="playerLine"></div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" id="btnSettings" aria-label="Player Settings">⚙️</button>
+  </header>
+
+  <!-- DASHBOARD -->
+  <main id="viewDashboard" class="view">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Today</h2>
+        <div class="muted" id="historyMeta">Loading history…</div>
+      </div>
+
+      <div class="scores" id="scoresList">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="btnStartWorkout">Start new workout</button>
+        <button class="btn btn-secondary" id="btnRefresh">Refresh history</button>
+      </div>
+
+      <div class="hint">
+        Tip: Swipe in a workout to move between games.
+      </div>
+    </section>
   </main>
+
+  <!-- WORKOUT -->
+  <main id="viewWorkout" class="view hidden">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="workoutTitle">Workout</h2>
+        <div class="muted" id="workoutMeta"></div>
+      </div>
+
+      <div class="carousel">
+        <div class="carousel-track" id="carouselTrack" aria-label="Games carousel">
+          <!-- game cards injected here -->
+        </div>
+
+        <div class="dots" id="dots"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" id="btnBackToDashboard">Back</button>
+        <button class="btn btn-primary" id="btnSubmitWorkout" disabled>Submit workout</button>
+      </div>
+
+      <div class="hint">
+        Completed games enable submission. You can leave and resume later.
+      </div>
+    </section>
+  </main>
+
+  <!-- SETTINGS MODAL -->
+  <div class="modal hidden" id="settingsModal" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Player</h3>
+        <button class="btn btn-ghost" id="btnCloseSettings" aria-label="Close">✕</button>
+      </div>
+
+      <label class="field">
+        <span>Player ID</span>
+        <input id="playerIdInput" type="text" placeholder="e.g. ply_001" />
+        <span class="help">Used to fetch your session history.</span>
+      </label>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="btnSavePlayer">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js" defer></script>
 </body>
 </html>
