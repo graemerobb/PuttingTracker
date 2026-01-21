@@ -32,6 +32,4 @@ jobs:
 
             rsync -av --delete "$APP_DIR/api/" "$WEB_ROOT/api/"
 
-            [ -f "$WEB_ROOT/data/sessions.jsonl" ] || touch "$WEB_ROOT/data/sessions.jsonl"
-
             echo "Deployed PuttingTracker to $WEB_ROOT"
