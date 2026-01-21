@@ -1,0 +1,31 @@
+name: Deploy PuttingTracker (static)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to droplet via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            set -euo pipefail
+
+            APP_DIR=/home/robbg/apps/puttingtracker
+            WEB_ROOT=/home/robbg/truetargetputting.com/public_html/puttingtracker
+
+            # Pull latest
+            cd "$APP_DIR"
+            GIT_SSH_COMMAND="ssh -i ~/.ssh/puttingtracker_deploy -o IdentitiesOnly=yes" git pull
+
+            # Sync static site
+            mkdir -p "$WEB_ROOT"
+            rsync -av --delete "$APP_DIR/public/" "$WEB_ROOT/"
+
+            echo "Deployed PuttingTracker to $WEB_ROOT"
