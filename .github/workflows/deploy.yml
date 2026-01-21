@@ -17,24 +17,25 @@ jobs:
           script: |
             set -euo pipefail
 
-            # Paths
             APP_DIR=/home/robbg/apps/puttingtracker
             WEB_ROOT=/home/robbg/truetargetputting.com/public_html/puttingtracker
 
-            # Pull latest
             cd "$APP_DIR"
             GIT_SSH_COMMAND="ssh -i ~/.ssh/puttingtracker_deploy -o IdentitiesOnly=yes" git pull
 
-            # Ensure folders exist
+            # Ensure folders exist BEFORE rsync
             mkdir -p "$WEB_ROOT" "$WEB_ROOT/api" "$WEB_ROOT/data"
 
-            # 1) Deploy frontend (root files)
-            rsync -av --delete "$APP_DIR/public/" "$WEB_ROOT/"
+            # 1) Deploy frontend, but DO NOT delete api/ or data/ on the server
+            rsync -av --delete \
+                --exclude 'api/' \
+                --exclude 'data/' \
+                "$APP_DIR/public/" "$WEB_ROOT/"
 
             # 2) Deploy API PHP files
             rsync -av --delete "$APP_DIR/api/" "$WEB_ROOT/api/"
 
-            # 3) Deploy ONLY control files into data/ (do NOT delete or overwrite sessions.jsonl)
+            # 3) Deploy control files into data/ (safe)
             rsync -av "$APP_DIR/data/.htaccess" "$WEB_ROOT/data/.htaccess"
             rsync -av "$APP_DIR/data/.gitignore" "$WEB_ROOT/data/.gitignore"
 
