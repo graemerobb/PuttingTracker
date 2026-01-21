@@ -58,6 +58,22 @@ body{
 .panel-head h2{margin:0; font-size:18px;}
 .muted{color:var(--muted); font-size:12px;}
 
+.resume{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(39,67,123,.18);
+  margin: 10px 0 14px;
+}
+.resume-title{font-weight:900;}
+.resume-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.resume-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+
 .scores{
   display:flex;
   flex-direction:column;

@@ -4,7 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PuttingTracker</title>
-  <link rel="stylesheet" href="styles.css?v=1234" />
+
+  <!-- Cache-bust for Cloudflare while iterating -->
+  <link rel="stylesheet" href="styles.css?v=20260121_3" />
 </head>
 <body>
   <header class="topbar">
@@ -22,21 +24,34 @@
   <main id="viewDashboard" class="view">
     <section class="panel">
       <div class="panel-head">
-        <h2>Today</h2>
-        <div class="muted" id="historyMeta">Loading history…</div>
+        <h2>Dashboard</h2>
+        <div class="muted" id="historyMeta">Loading stats…</div>
       </div>
 
+      <!-- RESUME BANNER (shown when localStorage has a current session) -->
+      <div class="resume hidden" id="resumeBanner">
+        <div>
+          <div class="resume-title">Resume workout</div>
+          <div class="resume-sub" id="resumeMeta"></div>
+        </div>
+        <div class="resume-actions">
+          <button class="btn btn-primary" id="btnResume">Resume</button>
+          <button class="btn btn-secondary" id="btnResetWorkout">Reset</button>
+        </div>
+      </div>
+
+      <!-- Last + PB scores for games (rendered from /api/stats) -->
       <div class="scores" id="scoresList">
         <!-- populated by JS -->
       </div>
 
       <div class="actions">
         <button class="btn btn-primary" id="btnStartWorkout">Start new workout</button>
-        <button class="btn btn-secondary" id="btnRefresh">Refresh history</button>
+        <button class="btn btn-secondary" id="btnRefresh">Refresh stats</button>
       </div>
 
       <div class="hint">
-        Tip: Swipe in a workout to move between games.
+        Tip: Start a workout, then swipe between games.
       </div>
     </section>
   </main>
@@ -79,7 +94,7 @@
       <label class="field">
         <span>Player ID</span>
         <input id="playerIdInput" type="text" placeholder="e.g. ply_001" />
-        <span class="help">Used to fetch your session history.</span>
+        <span class="help">Used to fetch your stats and session history.</span>
       </label>
 
       <div class="actions">
@@ -88,6 +103,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=1234" defer></script>
+  <!-- Cache-bust for Cloudflare while iterating -->
+  <script src="app.js?v=20260121_3" defer></script>
 </body>
 </html>
