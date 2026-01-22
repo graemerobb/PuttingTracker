@@ -2,6 +2,13 @@
 // PuttingTracker (mobile-first)
 // Dashboard loads from /puttingtracker/api/stats.php
 // Workout submits to /puttingtracker/api/sessions.php
+//
+// IMPORTANT FIXES in this version:
+// 1) isGameComplete() no longer depends on game.completed (except home_base)
+//    -> prevents circular "never completes" bug
+// 2) Mark done remains manual for home_base; other games validate before allowing mark done
+// 3) (Still uses your current pointer-swipe + transform carousel. If you switch to scroll-snap later,
+//    this file will still work; only the swipe layer would change.)
 
 const API_SESSIONS = "/puttingtracker/api/sessions.php";
 const API_STATS = "/puttingtracker/api/stats.php";
@@ -137,28 +144,48 @@ async function postSession(envelope) {
 }
 
 // -------------------- Game completeness / scoring --------------------
+// FIX: completion no longer depends on game.completed (except home_base).
+// We treat "complete" for non-home games as "required data is present".
 function isGameComplete(game) {
-  if (!game?.completed) return false;
+  if (!game) return false;
 
-  if (game.gameId === "touch_drill") return Number.isFinite(game?.result?.attemptsToComplete);
-  if (game.gameId === "lag_distance") return Number.isFinite(game?.result?.puttsToReachTarget);
+  // Home base is manual only (Mark done)
+  if (game.gameId === "home_base") {
+    return game.completed === true;
+  }
+
+  if (game.gameId === "touch_drill") {
+    return Number.isFinite(game?.result?.attemptsToComplete);
+  }
+
+  if (game.gameId === "lag_distance") {
+    return Number.isFinite(game?.result?.puttsToReachTarget);
+  }
 
   if (game.gameId === "short_makes" || game.gameId === "mid_makes") {
     const holes = game?.result?.holes || [];
     if (holes.length !== 4) return false;
+
     for (const h of holes) {
       const putts = h.putts || {};
       const keys = Object.keys(putts);
       if (keys.length !== 3) return false;
-      for (const k of keys) if (!(putts[k] === 0 || putts[k] === 1)) return false;
+
+      for (const k of keys) {
+        const v = putts[k];
+        if (!(v === 0 || v === 1)) return false;
+      }
     }
     return true;
   }
-  return true; // home_base
+
+  return false;
 }
+
 function countCompletedGames(env) {
   return (env.session.games || []).filter(isGameComplete).length;
 }
+
 function scoreMakesGame(game) {
   const holes = game?.result?.holes || [];
   let makes = 0;
@@ -180,6 +207,7 @@ function blankMakesResult(gameId) {
   });
   return { baseline, totalPutts: 18, holes, score: { makes: 0, deltaVsBaseline: -baseline } };
 }
+
 function newSessionEnvelope() {
   const startedAt = nowIsoUTC();
   const sessionId = uid("sess");
@@ -247,6 +275,7 @@ function sessionProgress(env) {
   const completed = total ? env.session.games.filter(isGameComplete).length : 0;
   return { completed, total };
 }
+
 function renderResumeBanner() {
   const env = loadCurrentSession();
   if (!env) { resumeBanner.classList.add("hidden"); return; }
@@ -295,6 +324,7 @@ function renderWorkout() {
   currentSession.session.games.forEach((game, idx) => {
     const def = GAMES.find(g => g.gameId === game.gameId);
 
+    // Keep makes score fresh
     if (game.gameId === "short_makes" || game.gameId === "mid_makes") scoreMakesGame(game);
 
     const badge = isGameComplete(game)
@@ -402,8 +432,10 @@ function renderCaptureUI(game) {
             holeObj.putts[key] = v;
 
             scoreMakesGame(game);
-            game.completed = isGameComplete(game);
 
+            // NOTE: we no longer set game.completed based on isGameComplete() for home_base only
+            // For other games, completed is manual, but readiness is computed by isGameComplete()
+            // We keep completed flag for makes/touch/lag as "optional"; it will be set via Mark done.
             currentSession.session.endedAt = nowIsoUTC();
             currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
 
@@ -450,7 +482,6 @@ function hookTouchInputs(root, game) {
       .filter(n => Number.isFinite(n));
     if (dist.length) game.result.distancesFtUsed = dist;
 
-    game.completed = isGameComplete(game);
     currentSession.session.endedAt = nowIsoUTC();
     currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
 
@@ -469,7 +500,6 @@ function hookLagInputs(root, game) {
     const putts = parseInt((puttsEl.value || "").trim(), 10);
     game.result.puttsToReachTarget = Number.isFinite(putts) ? putts : null;
 
-    game.completed = isGameComplete(game);
     currentSession.session.endedAt = nowIsoUTC();
     currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
 
@@ -480,7 +510,7 @@ function hookLagInputs(root, game) {
   puttsEl.addEventListener("input", commit);
 }
 
-// -------------------- Swipe (fixed) --------------------
+// -------------------- Swipe (unchanged from your version) --------------------
 function attachSwipe() {
   let startX = 0;
   let currentX = 0;
@@ -489,7 +519,6 @@ function attachSwipe() {
   const isInteractive = (el) => !!el.closest("button, a, input, textarea, select, label");
 
   carouselViewport.addEventListener("pointerdown", (e) => {
-    // Don't initiate swipe when tapping controls
     if (isInteractive(e.target)) return;
 
     dragging = true;
@@ -524,8 +553,6 @@ function attachSwipe() {
     if (dx > threshold) setActiveGame(activeGameIndex - 1);
     else if (dx < -threshold) setActiveGame(activeGameIndex + 1);
     else setActiveGame(activeGameIndex);
-
-    // Allow clicks to work normally after swipe ends
   };
 
   carouselViewport.addEventListener("pointerup", end);
@@ -580,7 +607,7 @@ btnSubmitWorkout.addEventListener("click", async () => {
   }
 });
 
-// Mark done button (delegated) — now works reliably
+// Mark done button (delegated)
 carouselTrack.addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-action='markDone']");
   if (!btn || !currentSession) return;
@@ -592,6 +619,7 @@ carouselTrack.addEventListener("click", (e) => {
   if (gameId === "home_base") {
     game.completed = true;
   } else {
+    // Validate readiness (required data present)
     if (!isGameComplete(game)) {
       alert("Finish the fields for this game first.");
       return;
