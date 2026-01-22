@@ -238,8 +238,8 @@ function newSessionEnvelope() {
         { gameId: "touch_drill", completed: false, result: { attemptsToComplete: null, distancesFtUsed: [3,6,9,12] } },
         { gameId: "lag_distance", completed: false, result: { puttsToReachTarget: null, targetPoints: 10, minStartDistanceFt: 32 } },
         { gameId: "short_makes", completed: false, result: blankMakesResult("short_makes") },
-        { gameId: "mid_makes", completed: false, result: blankMakesResult("mid_makes") }
-        { gameId: "win_on_tour", completed: false, result: { points: null } },
+        { gameId: "mid_makes", completed: false, result: blankMakesResult("mid_makes") },
+        { gameId: "win_on_tour", completed: false, result: { points: null } }
       ],
       summary: { gamesCompleted: 0, submitted: false, overallNotes: "" }
     }
