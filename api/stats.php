@@ -128,7 +128,7 @@ function game_display(string $gameId, array $game, array $def): string {
     $t = $def['tourTarget'] ?? 20;
 
     return is_numeric($v)
-      ? ((int)$v . ' (Tour win ' . (int)$t . ')')
+      ? ((int)$v . ' (tour win ' . (int)$t . ')')
       : '—';
   }
 
