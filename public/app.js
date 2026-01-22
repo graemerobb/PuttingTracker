@@ -166,22 +166,26 @@ function isGameComplete(game) {
     return Number.isFinite(game?.result?.puttsToReachTarget);
   }
 
+
   if (game.gameId === "short_makes" || game.gameId === "mid_makes") {
+    const expected = DISTANCES[game.gameId];         // <-- drives how many holes now
     const holes = game?.result?.holes || [];
-    if (holes.length !== 4) return false;
+    if (!Array.isArray(expected)) return false;
+    if (holes.length !== expected.length) return false;
 
-    for (const h of holes) {
-      const putts = h.putts || {};
-      const keys = Object.keys(putts);
-      if (keys.length !== 3) return false;
+    // ensure each expected hole has all 0/1 values for each expected distance
+    for (const exp of expected) {
+        const holeObj = holes.find(h => h.hole === exp.hole);
+        if (!holeObj || !holeObj.putts) return false;
 
-      for (const k of keys) {
-        const v = putts[k];
-        if (!(v === 0 || v === 1)) return false;
-      }
+        for (const d of exp.distances) {
+        const key = `${d}ft`;
+        const v = holeObj.putts[key];
+        if (!(v === 0 || v === 1)) return false; // must be explicitly 0 or 1
+        }
     }
     return true;
-  }
+    }
 
   return false;
 }
@@ -348,7 +352,14 @@ function renderWorkout() {
       <div class="instructions">${escapeHtml(def?.instructions || "").replaceAll("\n","<br>")}</div>
       <div class="capture" id="cap_${escapeHtml(game.gameId)}"></div>
       <div class="actions">
-        <button class="btn btn-secondary" data-action="markDone" data-game="${escapeHtml(game.gameId)}">Mark done</button>
+        <button
+        class="btn ${game.completed ? "btn-done" : "btn-secondary"}"
+        data-action="markDone"
+        data-game="${escapeHtml(game.gameId)}"
+        ${game.completed ? "disabled" : ""}
+        >
+        ${game.completed ? "✓ Done" : "Mark done"}
+        </button>
       </div>
     `;
 
