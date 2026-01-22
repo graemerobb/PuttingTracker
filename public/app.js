@@ -27,6 +27,8 @@ const GAMES = [
     instructions: "Hit putts from the disances below, each putt different angle.\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 12/18." },
   { gameId: "mid_makes", title: "Mid Makes", pbBetter: "higher",
     instructions: "Hit putts from the disances below, each putt different angle.\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 9/18." }
+  { gameId: "win_on_tour", title: "Win On Tour", pbBetter: "higher",
+    instructions: "Surround a hole with 5 tees at 4 feet, make one and move back a foot. Miss one and the tee is out.\nObjective: Make as many as possible before all tees out.\nScore: Number of makes vs Tour win baseline: 20." }
 ];
 
 const DISTANCES = {
@@ -187,6 +189,10 @@ function isGameComplete(game) {
     return true;
     }
 
+    if (game.gameId === "win_on_tour") {
+        return Number.isFinite(game?.result?.points);
+    }
+
   return false;
 }
 
@@ -233,6 +239,7 @@ function newSessionEnvelope() {
         { gameId: "lag_distance", completed: false, result: { puttsToReachTarget: null, targetPoints: 10, minStartDistanceFt: 32 } },
         { gameId: "short_makes", completed: false, result: blankMakesResult("short_makes") },
         { gameId: "mid_makes", completed: false, result: blankMakesResult("mid_makes") }
+        { gameId: "win_on_tour", completed: false, result: { points: null } },
       ],
       summary: { gamesCompleted: 0, submitted: false, overallNotes: "" }
     }
@@ -478,6 +485,37 @@ function renderCaptureUI(game) {
     wrap.appendChild(scoreRow);
     return wrap;
   }
+
+  if (game.gameId === "win_on_tour") {
+    wrap.innerHTML = `
+        <label class="field">
+        <span>Score (${game.result.unit || "points"})</span>
+        <input
+            inputmode="numeric"
+            placeholder="Enter score"
+            value="${game.result.points ?? ""}"
+            data-bind="points"
+        />
+        </label>
+    `;
+
+    const input = wrap.querySelector("input");
+    input.addEventListener("input", () => {
+        const v = parseInt(input.value.trim(), 10);
+        game.result.points = Number.isFinite(v) ? v : null;
+
+        game.completed = isGameComplete(game);
+        currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
+        currentSession.session.endedAt = nowIsoUTC();
+
+        saveCurrentSession();
+        updateSubmitState();
+        renderResumeBanner();
+    });
+
+    return wrap;
+  }
+
 
   wrap.textContent = "Unknown game.";
   return wrap;

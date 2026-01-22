@@ -55,6 +55,7 @@ $gameDefs = [
   'lag_distance' => ['pb' => 'lower'],
   'short_makes' => ['pb' => 'higher', 'baseline' => 12],
   'mid_makes' => ['pb' => 'higher', 'baseline' => 9],
+  'instruction_score' => ['pb' => 'higher', 'unit' => 'points'],
 ];
 
 function game_value(string $gameId, array $game): ?float {
@@ -75,6 +76,11 @@ function game_value(string $gameId, array $game): ?float {
   if ($gameId === 'home_base') {
     return 1.0;
   }
+  if ($gameId === 'win_on_tour') {
+    $v = $game['result']['score'] ?? null;
+    return is_numeric($v) ? (float)$v : null;
+  }
+
   return null;
 }
 
@@ -100,6 +106,13 @@ function game_display(string $gameId, array $game, array $def): string {
     if (is_numeric($b)) return ((int)$m . ' / 18 (base ' . (int)$b . ')');
     return ((int)$m . ' / 18');
   }
+  if ($gameId === 'win_on_tour') {
+    $v = $game['result']['score'] ?? null;
+    $unit = $game['result']['unit'] ?? ($def['unit'] ?? 'points');
+    if (!is_string($unit) || $unit === '') $unit = 'points';
+    return is_numeric($v) ? ((int)$v . ' ' . $unit) : '—';
+  }
+
 
   return '—';
 }
