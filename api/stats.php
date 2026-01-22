@@ -51,7 +51,8 @@ if (!file_exists($dataFile)) {
 // Game definitions: pb direction and display formatting
 $gameDefs = [
   'home_base' => ['pb' => 'na'],
-  'touch_drill' => ['pb' => 'lower'],
+  'touch_drill_uphill' => ['pb' => 'lower'],
+  'touch_drill_downhill' => ['pb' => 'lower'],
   'lag_distance' => ['pb' => 'lower'],
   'short_makes' => ['pb' => 'higher', 'baseline' => 12],
   'mid_makes' => ['pb' => 'higher', 'baseline' => 9],
@@ -61,7 +62,7 @@ $gameDefs = [
 function game_value(string $gameId, array $game): ?float {
   if (!($game['completed'] ?? false)) return null;
 
-  if ($gameId === 'touch_drill') {
+  if ($gameId === 'touch_drill_uphill' || $gameId === 'touch_drill_downhill') {
     $v = $game['result']['attemptsToComplete'] ?? null;
     return is_numeric($v) ? (float)$v : null;
   }
@@ -73,9 +74,14 @@ function game_value(string $gameId, array $game): ?float {
     $v = $game['result']['score']['makes'] ?? null;
     return is_numeric($v) ? (float)$v : null;
   }
+  // home_base is non-quantitative; return 1 if we have anything worth showing
   if ($gameId === 'home_base') {
-    return 1.0;
+    $note = $game['result']['note'] ?? '';
+    $note = is_string($note) ? trim($note) : '';
+    $done = ($game['completed'] ?? false) ? true : false;
+    return ($done || $note !== '') ? 1.0 : null;
   }
+
   if ($gameId === 'win_on_tour') {
     $v = $game['result']['score'] ?? null;
     if (!is_numeric($v)) $v = $game['result']['points'] ?? null;
@@ -88,9 +94,14 @@ function game_value(string $gameId, array $game): ?float {
 function game_display(string $gameId, array $game, array $def): string {
   if (!($game['completed'] ?? false)) return '—';
 
-  if ($gameId === 'home_base') return 'Done';
+  if ($gameId === 'home_base') {
+    $note = $game['result']['note'] ?? '';
+    $note = is_string($note) ? trim($note) : '';
+    if ($note !== '') return $note;   // show last note
+    return (($game['completed'] ?? false) ? 'Done' : '—');
+  }
 
-  if ($gameId === 'touch_drill') {
+  if ($gameId === 'touch_drill_uphill' || $gameId === 'touch_drill_downhill') {
     $v = $game['result']['attemptsToComplete'] ?? null;
     return is_numeric($v) ? ((int)$v . ' attempts') : '—';
   }

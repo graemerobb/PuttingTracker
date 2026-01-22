@@ -1,14 +1,16 @@
 :root{
   --bg:#0b1220;
-  --panel:#0f1b2f;
-  --text:#e8eefc;
-  --muted:#9fb0d1;
-  --border: rgba(255,255,255,.08);
+    --panel:#111f36;      /* slightly lighter */
+    --text:#ffffff;       /* full white */
+    --muted:#c4d1ee;      /* brighter muted */
+    --border: rgba(255,255,255,.14); /* stronger borders */
   --good:#4ade80;
   --bad:#fb7185;
   --warn:#fbbf24;
   --btn:#1c2f55;
   --btn2:#13213c;
+
+
 }
 
 *{box-sizing:border-box}
@@ -106,7 +108,6 @@ body{
   border:1px solid var(--border);
   border-radius:16px;
   padding:12px;
-  background: rgba(255,255,255,.02);
 }
 
 .score-top{
@@ -180,8 +181,12 @@ body{
 .game-card{
   min-width:100%;
   padding:14px;
-  background: rgba(255,255,255,.02);
 }
+.score-card,
+.game-card{
+  background: rgba(255,255,255,.06);
+}
+
 .game-head{
   display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
 }
@@ -192,7 +197,7 @@ body{
   padding:10px;
   border-radius:14px;
   border:1px solid var(--border);
-  background: rgba(0,0,0,.12);
+  background: rgba(0,0,0,.20);
   font-size:13px;
   line-height:1.35;
 }
@@ -212,6 +217,10 @@ body{
   color: var(--text);
   outline:none;
 }
+.field input{
+  font-size: 16px; /* prevents iOS zoom */
+}
+
 .help{font-size:11px; color:var(--muted);}
 
 .grid{

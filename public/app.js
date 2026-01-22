@@ -19,8 +19,10 @@ const LS_CURRENT = "PuttingTracker.currentSession";
 const GAMES = [
   { gameId: "home_base", title: "Home Base", pbBetter: "na",
     instructions: "Before playing check alignment and strike quality through the gate.\nCheck ball position, and ability to hit targets while head down." },
-  { gameId: "touch_drill", title: "Touch Drill", pbBetter: "lower",
-    instructions: "Setup markers at fixed distances 1 ft apart.\nGoal: achieve 4 in a row at each distance.\nScore: attempts needed to complete." },
+  { gameId: "touch_drill_uphill", title: "Touch Drill Uphill", pbBetter: "lower",
+    instructions: "10ft away uphill, Setup markers at fixed distances 1 ft apart.\nGoal: achieve 4 in a row at each distance.\nScore: attempts needed to complete." },
+  { gameId: "touch_drill_downhill", title: "Touch Drill Dowhill", pbBetter: "lower",
+    instructions: "10ft away downhill, Setup markers at fixed distances 1 ft apart.\nGoal: achieve 4 in a row at each distance.\nScore: attempts needed to complete." },
   { gameId: "lag_distance", title: "Lag Distance", pbBetter: "lower",
     instructions: "Select random putts over 32ft.\nObjective: Hole it for 3 points, Lag it to 7% for 2 points, Lag it longer for -1 point.\nScore: How many putts to get to 10 points." },
   { gameId: "short_makes", title: "Short Makes", pbBetter: "higher",
@@ -84,6 +86,8 @@ const resumeBanner = document.getElementById("resumeBanner");
 const resumeMeta = document.getElementById("resumeMeta");
 const btnResume = document.getElementById("btnResume");
 const btnResetWorkout = document.getElementById("btnResetWorkout");
+
+const lagUiState = {}; // sessionId -> { attempts, points }
 
 // ---- State
 let playerId = loadPlayerId();
@@ -160,7 +164,7 @@ function isGameComplete(game) {
     return game.completed === true;
   }
 
-  if (game.gameId === "touch_drill") {
+  if (game.gameId === "touch_drill_uphill" || game.gameId === "touch_drill_downhill") {    if (game.gameId === "touch_drill_uphill" || game.gameId === "touch_drill_downhill") {
     return Number.isFinite(game?.result?.attemptsToComplete);
   }
 
@@ -234,8 +238,9 @@ function newSessionEnvelope() {
       endedAt: startedAt,
       playerId,
       games: [
-        { gameId: "home_base", completed: false },
-        { gameId: "touch_drill", completed: false, result: { attemptsToComplete: null, distancesFtUsed: [3,6,9,12] } },
+        { gameId: "home_base", completed: false, result: { note: "" } },
+        { gameId: "touch_drill_uphill", completed: false, result: { attemptsToComplete: null, distancesFtUsed: [7,8,9,10,11] } },
+        { gameId: "touch_drill_downhill", completed: false, result: { attemptsToComplete: null, distancesFtUsed: [7,8,9,10,11] } },
         { gameId: "lag_distance", completed: false, result: { puttsToReachTarget: null, targetPoints: 10, minStartDistanceFt: 32 } },
         { gameId: "short_makes", completed: false, result: blankMakesResult("short_makes") },
         { gameId: "mid_makes", completed: false, result: blankMakesResult("mid_makes") },
@@ -310,7 +315,7 @@ function updateSubmitState() {
   if (!currentSession) { btnSubmitWorkout.disabled = true; workoutMeta.textContent = ""; return; }
   const completed = countCompletedGames(currentSession);
   const total = currentSession.session.games.length;
-  btnSubmitWorkout.disabled = completed !== total;
+  btnSubmitWorkout.disabled = completed < 2; // require at least 2 games completed to submit 
   workoutMeta.textContent = `Completed ${completed}/${total}`;
 }
 
@@ -388,11 +393,37 @@ function renderCaptureUI(game) {
   const wrap = document.createElement("div");
 
   if (game.gameId === "home_base") {
-    wrap.innerHTML = `<div class="field"><span class="help">No data. Use “Mark done” when complete.</span></div>`;
-    return wrap;
-  }
+    const note = game.result?.note ?? "";
+    wrap.innerHTML = `
+        <label class="field">
+        <span>Notes</span>
+        <input
+            type="text"
+            inputmode="text"
+            placeholder="Head down, until target..."
+            value="${escapeHtml(note)}"
+            data-bind="home_note"
+        />
+        <span class="help">Saved locally until submit.</span>
+        </label>
+    `;
 
-  if (game.gameId === "touch_drill") {
+    const input = wrap.querySelector('[data-bind="home_note"]');
+    input.addEventListener("input", () => {
+        game.result.note = input.value;
+
+        currentSession.session.endedAt = nowIsoUTC();
+        currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
+        saveCurrentSession();
+        renderResumeBanner();
+    });
+
+    return wrap;
+    }
+
+
+  if (game.gameId === "touch_drill_uphill" || game.gameId === "touch_drill_downhill") {
+
     wrap.innerHTML = `
       <label class="field">
         <span>Attempts to complete</span>
@@ -408,15 +439,99 @@ function renderCaptureUI(game) {
   }
 
   if (game.gameId === "lag_distance") {
-    wrap.innerHTML = `
-      <label class="field">
-        <span>Putts to reach ${game.result.targetPoints} points</span>
-        <input inputmode="numeric" placeholder="e.g. 8" value="${game.result.puttsToReachTarget ?? ""}" data-bind="lag_putts" />
-      </label>
-    `;
-    hookLagInputs(wrap, game);
-    return wrap;
+        const sid = currentSession?.session?.sessionId || "no_session";
+        if (!lagUiState[sid]) lagUiState[sid] = { attempts: 0, points: 0 };
+
+        const state = lagUiState[sid];
+        const target = game.result.targetPoints ?? 10;
+
+        // If already persisted (e.g. resumed), keep showing it
+        const reachedAt = game.result.puttsToReachTarget;
+
+        wrap.innerHTML = `
+        <div class="kpis">
+            <div class="kpi">
+            <div class="label">Attempts</div>
+            <div class="value" id="lagAttempts">${state.attempts}</div>
+            </div>
+            <div class="kpi">
+            <div class="label">Points</div>
+            <div class="value" id="lagPoints">${state.points}</div>
+            </div>
+            <div class="kpi">
+            <div class="label">Target</div>
+            <div class="value">${target}</div>
+            </div>
+        </div>
+
+        <div class="actions" style="margin-top:12px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" data-lag="good">Lag good (+2)</button>
+            <button class="btn btn-secondary" data-lag="bad">Lag bad (-1)</button>
+            <button class="btn btn-secondary" data-lag="holed">Holed (+3)</button>
+            <button class="btn btn-ghost" data-lag="reset">Reset</button>
+        </div>
+
+        <div class="hint" id="lagHint" style="margin-top:10px;">
+            ${reachedAt ? `Reached ${target} in ${reachedAt} putts (saved).` : "Tap each putt outcome to track running score."}
+        </div>
+        `;
+
+        const updateUI = () => {
+        wrap.querySelector("#lagAttempts").textContent = String(state.attempts);
+        wrap.querySelector("#lagPoints").textContent = String(state.points);
+
+        const hint = wrap.querySelector("#lagHint");
+        const reached = game.result.puttsToReachTarget;
+        hint.textContent = reached
+            ? `Reached ${target} in ${reached} putts (saved).`
+            : "Tap each putt outcome to track running score.";
+        };
+
+        const apply = (delta) => {
+        state.attempts += 1;
+        state.points += delta;
+
+        // Persist once we hit target (first time only)
+        if (!Number.isFinite(game.result.puttsToReachTarget) && state.points >= target) {
+            game.result.puttsToReachTarget = state.attempts;
+            game.completed = true; // optional, makes it “done” automatically when target reached
+        }
+
+        currentSession.session.endedAt = nowIsoUTC();
+        currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
+
+        saveCurrentSession();
+        updateSubmitState();
+        renderResumeBanner();
+        updateUI();
+        };
+
+        wrap.querySelectorAll("button[data-lag]").forEach((b) => {
+        b.addEventListener("click", () => {
+            const t = b.getAttribute("data-lag");
+            if (t === "good") return apply(2);
+            if (t === "bad") return apply(-1);
+            if (t === "holed") return apply(3);
+            if (t === "reset") {
+            lagUiState[sid] = { attempts: 0, points: 0 };
+            state.attempts = 0;
+            state.points = 0;
+
+            // Reset persisted result too (optional but usually desired)
+            game.result.puttsToReachTarget = null;
+            game.completed = false;
+
+            saveCurrentSession();
+            updateSubmitState();
+            renderResumeBanner();
+            updateUI();
+            }
+        });
+        });
+
+        return wrap;
   }
+
 
   if (game.gameId === "short_makes" || game.gameId === "mid_makes") {
     const rows = DISTANCES[game.gameId];
@@ -644,6 +759,7 @@ btnSubmitWorkout.addEventListener("click", async () => {
     }
 
     currentSession.session.summary.gamesCompleted = countCompletedGames(currentSession);
+    currentSession.session.summary.submitted = true;
     currentSession.session.endedAt = nowIsoUTC();
 
     await postSession(currentSession);
