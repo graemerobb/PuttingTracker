@@ -164,7 +164,7 @@ function isGameComplete(game) {
     return game.completed === true;
   }
 
-  if (game.gameId === "touch_drill_uphill" || game.gameId === "touch_drill_downhill") {    if (game.gameId === "touch_drill_uphill" || game.gameId === "touch_drill_downhill") {
+  if (game.gameId === "touch_drill_uphill" || game.gameId === "touch_drill_downhill") {
     return Number.isFinite(game?.result?.attemptsToComplete);
   }
 
