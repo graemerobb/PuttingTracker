@@ -56,7 +56,7 @@ $gameDefs = [
   'lag_distance' => ['pb' => 'lower'],
   'short_makes' => ['pb' => 'higher', 'baseline' => 12],
   'mid_makes' => ['pb' => 'higher', 'baseline' => 9],
-  'win_on_tour' => ['pb' => 'higher', 'unit' => 'points'],
+  'win_on_tour' => ['pb' => 'higher', 'tourTarget' => 20],
 ];
 
 function game_value(string $gameId, array $game): ?float {
@@ -82,11 +82,14 @@ function game_value(string $gameId, array $game): ?float {
     return ($done || $note !== '') ? 1.0 : null;
   }
 
-  if ($gameId === 'win_on_tour') {
+    if ($gameId === 'win_on_tour') {
     $v = $game['result']['score'] ?? null;
     if (!is_numeric($v)) $v = $game['result']['points'] ?? null;
-    return is_numeric($v) ? (float)$v : null;
-}
+
+    $t = $def['tourTarget'] ?? 20;
+
+    return is_numeric($v) ? ((int)$v . ' (Tour win ' . (int)$t . ')') : '—';
+    }
 
   return null;
 }
@@ -113,21 +116,29 @@ function game_display(string $gameId, array $game, array $def): string {
 
   if ($gameId === 'short_makes' || $gameId === 'mid_makes') {
     $m = $game['result']['score']['makes'] ?? null;
-    $b = $def['baseline'] ?? null;
     if (!is_numeric($m)) return '—';
-    if (is_numeric($b)) return ((int)$m . ' / 18 (base ' . (int)$b . ')');
-    return ((int)$m . ' / 18');
-  }
+
+    $total = $game['result']['totalPutts'] ?? 18;
+    $b = $def['baseline'] ?? null;
+
+    if (is_numeric($b)) {
+        return ((int)$m . ' / ' . (int)$total . ' (tour ' . (int)$b . ')');
+    }
+
+    return ((int)$m . ' / ' . (int)$total);
+    }
+
+
   if ($gameId === 'win_on_tour') {
     $v = $game['result']['score'] ?? null;
     if (!is_numeric($v)) $v = $game['result']['points'] ?? null;
 
-    $unit = $game['result']['unit'] ?? ($def['unit'] ?? 'points');
-    if (!is_string($unit) || $unit === '') $unit = 'points';
+    $t = $def['tourTarget'] ?? 20;
 
-    return is_numeric($v) ? ((int)$v . ' ' . $unit) : '—';
-}  
-
+    return is_numeric($v)
+        ? ((int)$v . ' (Tour win ' . (int)$t . ')')
+        : '—';
+    }
 
   return '—';
 }
