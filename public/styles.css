@@ -146,6 +146,13 @@ body{
   font-weight:700;
   cursor:pointer;
 }
+/* Mark-done visual state */
+.btn-done {
+  background: rgba(74, 222, 128, 0.25);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #4ade80;
+  cursor: default;
+}
 .btn:disabled{opacity:.45; cursor:not-allowed;}
 .btn-primary{background:#27437b;}
 .btn-secondary{background:var(--btn2);}

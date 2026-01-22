@@ -619,13 +619,22 @@ carouselTrack.addEventListener("click", (e) => {
 
   if (gameId === "home_base") {
     game.completed = true;
-  } else {
+    btn.disabled = true;
+    btn.textContent = "✓ Done";
+    btn.classList.add("btn-done");
+
+} else {
     // Validate readiness (required data present)
     if (!isGameComplete(game)) {
       alert("Finish the fields for this game first.");
       return;
     }
     game.completed = true;
+    // Visual feedback for Mark Done
+    btn.disabled = true;
+    btn.textContent = "✓ Done";
+    btn.classList.add("btn-done");
+
   }
 
   if (gameId === "short_makes" || gameId === "mid_makes") scoreMakesGame(game);
