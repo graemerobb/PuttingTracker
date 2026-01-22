@@ -55,7 +55,7 @@ $gameDefs = [
   'lag_distance' => ['pb' => 'lower'],
   'short_makes' => ['pb' => 'higher', 'baseline' => 12],
   'mid_makes' => ['pb' => 'higher', 'baseline' => 9],
-  'instruction_score' => ['pb' => 'higher', 'unit' => 'points'],
+  'win_on_tour' => ['pb' => 'higher', 'unit' => 'points'],
 ];
 
 function game_value(string $gameId, array $game): ?float {
