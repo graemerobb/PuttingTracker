@@ -342,7 +342,6 @@ function renderWorkout() {
       <div class="game-head">
         <div>
           <div class="game-title">${escapeHtml(def?.title || game.gameId)}</div>
-          <div class="game-sub">${escapeHtml(game.gameId)}</div>
         </div>
         ${badge}
       </div>
