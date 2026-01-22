@@ -26,7 +26,7 @@ const GAMES = [
   { gameId: "short_makes", title: "Short Makes", pbBetter: "higher",
     instructions: "Hit putts from the disances below, each putt different angle.\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 12/18." },
   { gameId: "mid_makes", title: "Mid Makes", pbBetter: "higher",
-    instructions: "Hit putts from the disances below, each putt different angle.\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 9/18." }
+    instructions: "Hit putts from the disances below, each putt different angle.\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 9/18." },
   { gameId: "win_on_tour", title: "Win On Tour", pbBetter: "higher",
     instructions: "Surround a hole with 5 tees at 4 feet, make one and move back a foot. Miss one and the tee is out.\nObjective: Make as many as possible before all tees out.\nScore: Number of makes vs Tour win baseline: 20." }
 ];
