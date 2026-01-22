@@ -237,8 +237,29 @@ body{
   user-select:none;
   font-weight:800;
 }
+/* Compact make/miss pills for mobile */
+.pill {
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 8px 0;
+}
+/* Extra-tight on iPhone-sized screens */
+@media (max-width: 420px) {
+  .pill {
+    padding: 7px 0;
+    font-size: 15px;
+  }
+}
+
 .pill.on{background: rgba(74,222,128,.20); border-color: rgba(74,222,128,.45);}
 .pill.off{background: rgba(251,113,133,.18); border-color: rgba(251,113,133,.40);}
+
+.pill[data-set="1"] { color: #4ade80; }
+.pill[data-set="0"] { color: #fb7185; }
+
+.pill.on { background: rgba(74,222,128,.20); }
+.pill.off { background: rgba(251,113,133,.18); }
 
 .dots{
   display:flex;

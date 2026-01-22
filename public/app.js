@@ -18,15 +18,15 @@ const LS_CURRENT = "PuttingTracker.currentSession";
 
 const GAMES = [
   { gameId: "home_base", title: "Home Base", pbBetter: "na",
-    instructions: "Check alignment and strike quality through the gate.\n(No data — just confirm you did it.)" },
+    instructions: "Before playing check alignment and strike quality through the gate.\nCheck ball position, and ability to hit targets while head down." },
   { gameId: "touch_drill", title: "Touch Drill", pbBetter: "lower",
-    instructions: "Setup markers at fixed distances.\nGoal: achieve 4 in a row at each distance.\nScore: attempts needed to complete." },
+    instructions: "Setup markers at fixed distances 1 ft apart.\nGoal: achieve 4 in a row at each distance.\nScore: attempts needed to complete." },
   { gameId: "lag_distance", title: "Lag Distance", pbBetter: "lower",
-    instructions: "Random putts over 32ft.\nObjective: get score over 10 points.\nScore: putts needed to reach the target." },
+    instructions: "Select random putts over 32ft.\nObjective: Hole it for 3 points, Lag it to 7% for 2 points, Lag it longer for -1 point.\nScore: How many putts to get to 10 points." },
   { gameId: "short_makes", title: "Short Makes", pbBetter: "higher",
-    instructions: "Distances: H1 3,4,5 | H2 4,5,6 | H3 6,7,8 | H4 8,9,10\n18 putts. Score: makes. Baseline: 12." },
+    instructions: "Hit putts from the disances below\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 12/18." },
   { gameId: "mid_makes", title: "Mid Makes", pbBetter: "higher",
-    instructions: "Distances: H1 3,5,7 | H2 5,7,9 | H3 7,9,11 | H4 13,15,17\n18 putts. Score: makes. Baseline: 9." }
+    instructions: "Hit putts from the disances below\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 9/18." }
 ];
 
 const DISTANCES = {
@@ -419,12 +419,13 @@ function renderCaptureUI(game) {
         const tile = document.createElement("div");
         tile.className = "tile";
         tile.innerHTML = `
-          <div class="dist">${d}ft</div>
-          <div class="toggle">
-            <div class="pill ${current === 1 ? "on" : ""}" data-set="1">Made</div>
-            <div class="pill ${current === 0 ? "off" : ""}" data-set="0">Miss</div>
-          </div>
+        <div class="dist">${d}ft</div>
+        <div class="toggle">
+            <div class="pill ${current === 1 ? "on" : ""}" data-set="1" aria-label="Made">✓</div>
+            <div class="pill ${current === 0 ? "off" : ""}" data-set="0" aria-label="Missed">✕</div>
+        </div>
         `;
+
 
         tile.querySelectorAll(".pill").forEach(p => {
           p.addEventListener("click", () => {
