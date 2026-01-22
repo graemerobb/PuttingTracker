@@ -78,8 +78,9 @@ function game_value(string $gameId, array $game): ?float {
   }
   if ($gameId === 'win_on_tour') {
     $v = $game['result']['score'] ?? null;
+    if (!is_numeric($v)) $v = $game['result']['points'] ?? null;
     return is_numeric($v) ? (float)$v : null;
-  }
+}
 
   return null;
 }
@@ -108,10 +109,13 @@ function game_display(string $gameId, array $game, array $def): string {
   }
   if ($gameId === 'win_on_tour') {
     $v = $game['result']['score'] ?? null;
+    if (!is_numeric($v)) $v = $game['result']['points'] ?? null;
+
     $unit = $game['result']['unit'] ?? ($def['unit'] ?? 'points');
     if (!is_string($unit) || $unit === '') $unit = 'points';
+
     return is_numeric($v) ? ((int)$v . ' ' . $unit) : '—';
-  }
+}  
 
 
   return '—';

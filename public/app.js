@@ -265,7 +265,6 @@ function renderDashboardFromStats(stats) {
       <div class="score-top">
         <div>
           <div class="score-title">${escapeHtml(gdef.title)}</div>
-          <div class="score-meta">${escapeHtml(gdef.gameId)}</div>
         </div>
         <div class="badge">${gStats.last ? "Last" : "No data"}</div>
       </div>
