@@ -24,23 +24,27 @@ const GAMES = [
   { gameId: "lag_distance", title: "Lag Distance", pbBetter: "lower",
     instructions: "Select random putts over 32ft.\nObjective: Hole it for 3 points, Lag it to 7% for 2 points, Lag it longer for -1 point.\nScore: How many putts to get to 10 points." },
   { gameId: "short_makes", title: "Short Makes", pbBetter: "higher",
-    instructions: "Hit putts from the disances below\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 12/18." },
+    instructions: "Hit putts from the disances below, each putt different angle.\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 12/18." },
   { gameId: "mid_makes", title: "Mid Makes", pbBetter: "higher",
-    instructions: "Hit putts from the disances below\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 9/18." }
+    instructions: "Hit putts from the disances below, each putt different angle.\nObjective: Make as many as possible.\nScore: Number of makes vs Tour baseline: 9/18." }
 ];
 
 const DISTANCES = {
   short_makes: [
     { hole: 1, distances: [3, 4, 5] },
     { hole: 2, distances: [4, 5, 6] },
-    { hole: 3, distances: [6, 7, 8] },
-    { hole: 4, distances: [8, 9, 10] }
+    { hole: 3, distances: [5, 6, 7] },
+    { hole: 4, distances: [6, 7, 8] },
+    { hole: 5, distances: [7, 8, 9] },
+    { hole: 6, distances: [8, 9, 10] }
   ],
   mid_makes: [
     { hole: 1, distances: [3, 5, 7] },
     { hole: 2, distances: [5, 7, 9] },
     { hole: 3, distances: [7, 9, 11] },
-    { hole: 4, distances: [13, 15, 17] }
+    { hole: 4, distances: [9, 11, 13] },
+    { hole: 5, distances: [11, 13, 15] },
+    { hole: 6, distances: [13, 15, 17] }
   ]
 };
 

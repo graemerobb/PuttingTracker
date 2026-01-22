@@ -23,12 +23,10 @@ jobs:
             cd "$APP_DIR"
             GIT_SSH_COMMAND="ssh -i ~/.ssh/puttingtracker_deploy -o IdentitiesOnly=yes" git pull
 
-            # Example: 20260122_1530 (Melbourne local if your CI uses it; otherwise it's CI timezone)
             VERSION="$(date +%Y%m%d_%H%M)"
-
             HTML_FILE="$APP_DIR/public/index.html"
 
-            perl -0777 -i -pe '
+            VERSION="$VERSION" perl -0777 -i -pe '
             my $v = $ENV{VERSION};
             s/(href="[^"]*styles\.css)(\?v=[^"]*)?"/$1?v=$v"/g;
             s/(src="[^"]*app\.js)(\?v=[^"]*)?"/$1?v=$v"/g;
