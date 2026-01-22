@@ -54,8 +54,8 @@ $gameDefs = [
   'touch_drill_uphill' => ['pb' => 'lower'],
   'touch_drill_downhill' => ['pb' => 'lower'],
   'lag_distance' => ['pb' => 'lower'],
-  'short_makes' => ['pb' => 'higher', 'baseline' => 12],
-  'mid_makes' => ['pb' => 'higher', 'baseline' => 9],
+  'short_makes' => ['pb' => 'higher', 'tourTarget' => 12],
+  'mid_makes' => ['pb' => 'higher', 'tourTarget' => 9],
   'win_on_tour' => ['pb' => 'higher', 'tourTarget' => 20],
 ];
 
@@ -76,21 +76,15 @@ function game_value(string $gameId, array $game): ?float {
   }
   // home_base is non-quantitative; return 1 if we have anything worth showing
   if ($gameId === 'home_base') {
-    $note = $game['result']['note'] ?? '';
-    $note = is_string($note) ? trim($note) : '';
-    $done = ($game['completed'] ?? false) ? true : false;
-    return ($done || $note !== '') ? 1.0 : null;
+    // Home base has no quantitative score; treat completion as 1.0
+    return 1.0;
   }
 
-    if ($gameId === 'win_on_tour') {
+  if ($gameId === 'win_on_tour') {
     $v = $game['result']['score'] ?? null;
     if (!is_numeric($v)) $v = $game['result']['points'] ?? null;
-
-    $t = $def['tourTarget'] ?? 20;
-
-    return is_numeric($v) ? ((int)$v . ' (Tour win ' . (int)$t . ')') : '—';
-    }
-
+    return is_numeric($v) ? (float)$v : null;
+  }
   return null;
 }
 
@@ -118,16 +112,14 @@ function game_display(string $gameId, array $game, array $def): string {
     $m = $game['result']['score']['makes'] ?? null;
     if (!is_numeric($m)) return '—';
 
-    $total = $game['result']['totalPutts'] ?? 18;
-    $b = $def['baseline'] ?? null;
+    $total = $game['result']['totalPutts'] ?? 18; // uses schema if present
+    $t = $def['tourTarget'] ?? null;
 
-    if (is_numeric($b)) {
-        return ((int)$m . ' / ' . (int)$total . ' (tour ' . (int)$b . ')');
+    if (is_numeric($t)) {
+      return ((int)$m . ' / ' . (int)$total . ' (tour ' . (int)$t . ')');
     }
-
     return ((int)$m . ' / ' . (int)$total);
-    }
-
+  }
 
   if ($gameId === 'win_on_tour') {
     $v = $game['result']['score'] ?? null;
@@ -136,9 +128,10 @@ function game_display(string $gameId, array $game, array $def): string {
     $t = $def['tourTarget'] ?? 20;
 
     return is_numeric($v)
-        ? ((int)$v . ' (Tour win ' . (int)$t . ')')
-        : '—';
-    }
+      ? ((int)$v . ' (Tour win ' . (int)$t . ')')
+      : '—';
+  }
+
 
   return '—';
 }
