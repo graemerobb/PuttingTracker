@@ -12,7 +12,10 @@
 }
 
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{
+  height:100%;
+  overflow-x: hidden;
+}
 body{
   margin:0;
   background:var(--bg);
@@ -38,6 +41,10 @@ body{
   border:1px solid var(--border);
 }
 .title{font-weight:700; letter-spacing:.2px;}
+/* Ensure grid items can shrink properly (prevents overflow from long content) */
+.tile {
+  min-width: 0;
+}
 .subtitle{font-size:12px; color:var(--muted);}
 
 .view{padding:14px; max-width:820px; margin:0 auto;}
@@ -58,6 +65,9 @@ body{
 .panel-head h2{margin:0; font-size:18px;}
 .muted{color:var(--muted); font-size:12px;}
 
+.view, .panel, .carousel, .carousel-track, .game-card {
+  max-width: 100%;
+}
 .resume{
   display:flex;
   justify-content:space-between;
@@ -73,7 +83,18 @@ body{
 .resume-sub{font-size:12px;color:var(--muted);margin-top:2px;}
 .resume-actions{display:flex;gap:10px;flex-wrap:wrap;}
 
-
+/* On narrow screens, make the 3-column grid fit by shrinking gaps + padding */
+@media (max-width: 420px) {
+  .grid {
+    gap: 8px;
+  }
+  .tile {
+    padding: 8px;
+  }
+  .pill {
+    padding: 7px 8px;
+  }
+}
 .scores{
   display:flex;
   flex-direction:column;
