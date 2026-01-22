@@ -23,22 +23,25 @@ jobs:
             cd "$APP_DIR"
             GIT_SSH_COMMAND="ssh -i ~/.ssh/puttingtracker_deploy -o IdentitiesOnly=yes" git pull
 
-            VERSION="$(date +%Y%m%d_%H%M)"
-            HTML_FILE="$APP_DIR/public/index.html"
-
-            VERSION="$VERSION" perl -0777 -i -pe '
-            my $v = $ENV{VERSION};
-            s/(href="[^"]*styles\.css)(\?v=[^"]*)?"/$1?v=$v"/g;
-            s/(src="[^"]*app\.js)(\?v=[^"]*)?"/$1?v=$v"/g;
-            ' "$HTML_FILE"
-
             mkdir -p "$WEB_ROOT" "$WEB_ROOT/api" "$WEB_ROOT/data"
 
+            # Deploy static files first
             rsync -av --delete \
                 --exclude 'api/' \
                 --exclude 'data/' \
                 "$APP_DIR/public/" "$WEB_ROOT/"
 
+            # Now cache-bust the DEPLOYED html (not the git-tracked source)
+            VERSION="$(date +%Y%m%d_%H%M)"
+            HTML_FILE="$WEB_ROOT/index.html"
+
+            VERSION="$VERSION" perl -0777 -i -pe '
+                my $v = $ENV{VERSION};
+                s/(href="[^"]*styles\.css)(\?v=[^"]*)?"/$1?v=$v"/g;
+                s/(src="[^"]*app\.js)(\?v=[^"]*)?"/$1?v=$v"/g;
+            ' "$HTML_FILE"
+
+            # Deploy API
             rsync -av --delete "$APP_DIR/api/" "$WEB_ROOT/api/"
 
-            echo "Deployed PuttingTracker to $WEB_ROOT"
+            echo "Deployed PuttingTracker to $WEB_ROOT (v=$VERSION)"
