@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>MicScore Stats Prototype</title>
+  <link rel="stylesheet" href="dash.css" />
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="title">Welcome to MicScore Stats</div>
+      <div class="role">
+        <button class="btn selected" data-role="me">Me</button>
+        <button class="btn" data-role="pro">Club Pro</button>
+        <button class="btn" data-role="admin">Club Admin</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="left">
+        <label for="sectionSelect">View</label>
+        <select id="sectionSelect">
+          <option value="today" selected>Today’s round</option>
+          <option value="insights">My Insights</option>
+          <option value="group">Group insights</option>
+          <option value="workouts">Golf workouts</option>
+        </select>
+      </div>
+      <div class="hint">sg = strokes gained on today’s field</div>
+    </div>
+
+    <div class="main">
+      <!-- TODAY -->
+      <div class="section active" id="sec-today">
+        <div class="panel">
+          <h3>Today’s round</h3>
+          <p><strong>77 Gross</strong>, that’s <strong>4th best gross</strong> today, and <strong>1 in 200</strong> for a <strong>4 handicap</strong>.</p>
+
+          <div class="seg">
+            <button class="sbtn selected" data-sgmode="gross">sg on today’s field (gross)</button>
+            <button class="sbtn" data-sgmode="handicap">sg on handicap</button>
+            <button class="sbtn" data-sgmode="selected">sg on selected handicap</button>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel grey">
+            <h3>Highs</h3>
+            <div class="chiprow">
+              <span class="chip">+1 sg · 14th</span>
+              <span class="chip">+1 sg · 10th</span>
+              <span class="chip">+1 sg · 18th</span>
+            </div>
+          </div>
+
+          <div class="panel grey">
+            <h3>Lows</h3>
+            <div class="chiprow">
+              <span class="chip">-1 sg · 12th</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Flow</h3>
+          <div class="chartWrap">
+            <canvas id="flowChart"></canvas>
+            <div class="chartLegend">
+              <span>y: sg (-3 to +3)</span>
+              <span>x: holes 1–18</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel grey">
+            <h3>Personal targets</h3>
+            <div class="chiprow">
+              <span class="chip">No doubles · Success!</span>
+              <span class="chip">No 3 putts · Fail</span>
+            </div>
+          </div>
+
+          <div class="panel grey">
+            <h3>My friends</h3>
+            <p>You beat Bryan by 6 shots on hole 3. He got an 8!</p>
+            <p>You had the most birdies today</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSIGHTS -->
+      <div class="section" id="sec-insights">
+        <div class="panel">
+          <h3>My Insights</h3>
+          <p>Insights based on history and long-term trends.</p>
+        </div>
+      </div>
+
+      <!-- GROUP -->
+      <div class="section" id="sec-group">
+        <div class="panel">
+          <h3>Group insights</h3>
+          <p>Competition and banter-ready insights.</p>
+        </div>
+      </div>
+
+      <!-- WORKOUTS -->
+      <div class="section" id="sec-workouts">
+        <div class="panel">
+          <h3>Golf workouts</h3>
+          <p>Recommended workouts with PB tracking and friend leaderboards.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="dash.js"></script>
+</body>
+</html>
