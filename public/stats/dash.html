@@ -34,24 +34,27 @@
 
         <div class="grid2">
           <div class="panel grey">
-            <h3>Strokes gained today</h3>
+            <h3 class="h3Row">
+              <span>Strokes gained today</span>
+              <button class="infoBtn" id="sgInfoBtn" aria-label="Strokes gained information" type="button">(i)</button>
+            </h3>
             <div class="chiprow">
-              <span class="chip">+1 sg · 14th</span>
-              <span class="chip">+1 sg · 10th</span>
-              <span class="chip">+1 sg · 18th</span>
+              <span class="chip">+1.1 · 14th</span>
+              <span class="chip">+1.5 · 10th</span>
+              <span class="chip">+2.1 · 18th</span>
             </div>
           </div>
 
           <div class="panel grey">
             <h3>Strokes lost today</h3>
             <div class="chiprow">
-              <span class="chip">-1 sg · 12th</span>
+              <span class="chip">-0.3 · 12th</span>
             </div>
           </div>
         </div>
 
         <div class="panel">
-          <h3>Flow</h3>
+          <h3>Today’s round flow</h3>
           <div class="chartWrap">
             <canvas id="flowChart"></canvas>
           </div>
@@ -102,6 +105,24 @@
           <h3>Golf workouts</h3>
           <p>Workouts to capture PBs and compare with friends.</p>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info popup -->
+  <div class="modalOverlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modalTitle" id="modalTitle">Strokes gained</div>
+      <div class="modalBody">
+        <p>
+          Strokes gained means how many shots you gained or lost compared to the field for each hole.
+        </p>
+        <p>
+          To change this to compare with a handicap, use the <strong>sg view</strong> selector in the bottom bar.
+        </p>
+      </div>
+      <div class="modalActions">
+        <button class="modalBtn" id="modalCloseBtn" type="button">Close</button>
       </div>
     </div>
   </div>
