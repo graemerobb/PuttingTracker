@@ -33,13 +33,25 @@ jobs:
 
             # Now cache-bust the DEPLOYED html (not the git-tracked source)
             VERSION="$(date +%Y%m%d_%H%M)"
-            HTML_FILE="$WEB_ROOT/index.html"
+            
+            #HTML_FILE="$WEB_ROOT/index.html"
+            #VERSION="$VERSION" perl -0777 -i -pe '
+            #    my $v = $ENV{VERSION};
+            #    s/(href="[^"]*styles\.css)(\?v=[^"]*)?"/$1?v=$v"/g;
+            #    s/(src="[^"]*app\.js)(\?v=[^"]*)?"/$1?v=$v"/g;
+            #' "$HTML_FILE"
 
-            VERSION="$VERSION" perl -0777 -i -pe '
+            HTML_FILES=(
+              "$WEB_ROOT/index.html"
+              "$WEB_ROOT/stats/dash.html"
+            )
+            for f in "${HTML_FILES[@]}"; do
+              VERSION="$VERSION" perl -0777 -i -pe '
                 my $v = $ENV{VERSION};
                 s/(href="[^"]*styles\.css)(\?v=[^"]*)?"/$1?v=$v"/g;
                 s/(src="[^"]*app\.js)(\?v=[^"]*)?"/$1?v=$v"/g;
-            ' "$HTML_FILE"
+              ' "$f"
+            done
 
             # Deploy API
             rsync -av --delete "$APP_DIR/api/" "$WEB_ROOT/api/"
