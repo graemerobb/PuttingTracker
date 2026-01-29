@@ -29,26 +29,38 @@
       <div class="section active" id="sec-today">
         <div class="panel">
           <h3>Today’s round</h3>
-          <p><strong>77 Gross</strong>, that’s <strong>4th best gross</strong> today, and <strong>1 in 200</strong> for a <strong>4 handicap</strong>.</p>
+          <p>
+            <strong><span id="grossScore">77</span> Gross</strong>,
+            that’s <strong><span id="grossRank">4th</span> best gross</strong> today,
+            and <strong><span id="oddsText">1 in 200</span></strong> for a
+            <strong><span id="handicapValue">4</span> handicap</strong>.
+          </p>
         </div>
 
         <div class="grid2">
           <div class="panel grey">
             <h3 class="h3Row">
               <span>Strokes gained today</span>
-              <button class="infoBtn" id="sgInfoBtn" aria-label="Strokes gained information" type="button">(i)</button>
+
+              <span class="infoWrap">
+                <button class="infoBtn" id="sgInfoBtn" aria-label="Strokes gained info" type="button">i</button>
+                <span class="tooltip" id="sgTooltip" role="tooltip" aria-hidden="true">
+                  <strong>Strokes gained</strong> shows how many shots you gained or lost compared to the selected baseline.
+                  <br><br>
+                  To compare vs handicap, use the <strong>sg view</strong> selector in the bottom bar.
+                </span>
+              </span>
             </h3>
-            <div class="chiprow">
-              <span class="chip">+1.1 · 14th</span>
-              <span class="chip">+1.5 · 10th</span>
-              <span class="chip">+2.1 · 18th</span>
+
+            <div class="chiprow" id="sgGainedChips">
+              <!-- populated by JS -->
             </div>
           </div>
 
           <div class="panel grey">
             <h3>Strokes lost today</h3>
-            <div class="chiprow">
-              <span class="chip">-0.3 · 12th</span>
+            <div class="chiprow" id="sgLostChips">
+              <!-- populated by JS -->
             </div>
           </div>
         </div>
@@ -72,13 +84,17 @@
                 <span class="tLabel">No 3 putts</span>
                 <span class="tStatus">Fail</span>
               </div>
+              <div class="targetRow ok">
+                <span class="tLabel">No bogies on par 5s</span>
+                <span class="tStatus">Success</span>
+              </div>
             </div>
           </div>
 
           <div class="panel grey">
             <h3>My friends</h3>
-            <p>You beat Bryan by 6 shots on hole 3. He got an 8.</p>
-            <p>You had the most birdies today.</p>
+            <p><span id="friendLine1">You beat Bryan by 6 shots on hole 3. He got an 8.</span></p>
+            <p><span id="friendLine2">You had the most birdies today.</span></p>
           </div>
         </div>
       </div>
@@ -109,37 +125,15 @@
     </div>
   </div>
 
-  <!-- Info popup -->
-  <div class="modalOverlay" id="modalOverlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modalTitle" id="modalTitle">Strokes gained</div>
-      <div class="modalBody">
-        <p>
-          Strokes gained means how many shots you gained or lost compared to the field for each hole.
-        </p>
-        <p>
-          To change this to compare with a handicap, use the <strong>sg view</strong> selector in the bottom bar.
-        </p>
-      </div>
-      <div class="modalActions">
-        <button class="modalBtn" id="modalCloseBtn" type="button">Close</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Bottom global controls -->
   <div class="bottomBar">
     <div>
       <label for="roleSelect">Role</label>
       <select id="roleSelect">
-        <option value="me" selected>Me</option>
+        <option value="golfer" selected>Golfer</option>
         <option value="pro">Club Pro</option>
         <option value="admin">Club Admin</option>
       </select>
-    </div>
-
-    <div class="bottomMid" id="sgHint">
-      sg = strokes gained on today’s field (gross)
     </div>
 
     <div>
