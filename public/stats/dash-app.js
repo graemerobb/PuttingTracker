@@ -104,7 +104,7 @@ function renderForMode(mode){
   const cfg = DASH.sgModes[mode] || DASH.sgModes.gross;
   renderChips(gainedWrap, cfg.gained);
   renderChips(lostWrap, cfg.lost);
-  drawChart(cfg.flow);
+  drawChartAnimated(cfg.flow);
 }
 
 // --------- Section selector ----------
@@ -148,9 +148,14 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeTooltip();
 });
 
-// --------- Chart (gridlines + y label + hole labels) ----------
+// --------- Chart (your latest style + animation) ----------
+let lastSeries = null;
+let animRaf = null;
+
+function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
 function drawChart(series){
-  const data = Array.isArray(series) ? series : DASH.sgModes[currentMode].flow;
+  const data = Array.isArray(series) ? series : (DASH.sgModes[currentMode]?.flow || []);
 
   const cssW = canvas.clientWidth;
   const cssH = canvas.clientHeight;
@@ -161,7 +166,7 @@ function drawChart(series){
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   const W = cssW, H = cssH;
-  const padL = 36, padR = 10, padT = 12, padB = 28;
+  const padL = 36, padR = 10, padT = 12, padB = 18;
   const yMin = -1, yMax = 1;
 
   ctx.clearRect(0,0,W,H);
@@ -170,12 +175,6 @@ function drawChart(series){
   const y0 = padT, y1 = H - padB;
   const xStep = (x1 - x0) / 17;
   const yToPx = (v) => y1 - ((v - yMin) / (yMax - yMin)) * (y1 - y0);
-
-  // grid + y labels
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(7,26,51,0.18)";
-  ctx.fillStyle = "rgba(7,26,51,0.65)";
-  ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
 
   // zero line only
   const yZero = yToPx(0);
@@ -198,17 +197,8 @@ function drawChart(series){
   ctx.fillStyle = "rgba(7,26,51,0.65)";
   for (let i = 0; i < 18; i++){
     const x = x0 + xStep * i;
-    ctx.fillText(String(i + 1), x - 4, H - 6);
+    ctx.fillText(String(i + 1), x - 4, H - 4);
   }
-
- 
-
-  // y axis label
-  //ctx.save();
-  //ctx.translate(16, (y0 + y1) / 2);
-  //ctx.rotate(-Math.PI / 2);
-  //ctx.fillText("sg", 0, 0);
-  //ctx.restore();
 
   // line
   ctx.lineWidth = 2;
@@ -228,9 +218,46 @@ function drawChart(series){
     const x = x0 + xStep * i;
     const y = yToPx(v);
     ctx.beginPath();
-    ctx.arc(x, y, 2.6, 0, Math.PI * 2);
+    ctx.arc(x, y, 2.3, 0, Math.PI * 2);
     ctx.fill();
   });
+}
+
+function drawChartAnimated(nextSeries){
+  const target = Array.isArray(nextSeries) ? nextSeries.slice() : [];
+  if (target.length !== 18) return drawChart(target);
+
+  // Cancel any in-flight animation
+  if (animRaf) cancelAnimationFrame(animRaf);
+
+  // Seed lastSeries (first run)
+  if (!lastSeries || lastSeries.length !== 18){
+    lastSeries = target.slice();
+    return drawChart(lastSeries);
+  }
+
+  const start = lastSeries.slice();
+  const end = target.slice();
+  const duration = 380; // ms
+  const t0 = performance.now();
+
+  const step = (now) => {
+    const t = Math.min(1, (now - t0) / duration);
+    const e = easeOutCubic(t);
+
+    const frame = start.map((sv, i) => sv + (end[i] - sv) * e);
+    drawChart(frame);
+
+    if (t < 1){
+      animRaf = requestAnimationFrame(step);
+    } else {
+      lastSeries = end.slice();
+      animRaf = null;
+      drawChart(lastSeries); // final crisp draw
+    }
+  };
+
+  animRaf = requestAnimationFrame(step);
 }
 
 // --------- Init ----------
@@ -241,6 +268,9 @@ window.onload = () => {
 
 window.onresize = () => {
   if (sections.today.classList.contains("active")) {
-    renderForMode(currentMode);
+    // redraw without anim on resize
+    const cfg = DASH.sgModes[currentMode] || DASH.sgModes.gross;
+    lastSeries = cfg.flow.slice();
+    drawChart(lastSeries);
   }
 };
