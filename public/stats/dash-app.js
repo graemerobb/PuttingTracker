@@ -5,11 +5,12 @@ const DASH = {
     grossRank: "4th",
     oddsText: "1 in 200",
     handicapValue: 4,
+    parStreakLine: "6 hole par streak - 3th through 9th",
     friendLine1: "You beat Bryan by 6 shots on hole 3. He got an 8.",
     friendLine2: "You had the most birdies today."
   },
 
-  // When sg selection changes, switch ALL relevant numbers (chips + flow series)
+  // When SG selection changes, switch ALL relevant numbers (chips + flow series)
   sgModes: {
     gross: {
       gained: [
@@ -60,6 +61,7 @@ const grossScoreEl = document.getElementById("grossScore");
 const grossRankEl = document.getElementById("grossRank");
 const oddsTextEl = document.getElementById("oddsText");
 const handicapValueEl = document.getElementById("handicapValue");
+const parStreakEl = document.getElementById("parStreakLine");
 const friendLine1El = document.getElementById("friendLine1");
 const friendLine2El = document.getElementById("friendLine2");
 
@@ -71,6 +73,13 @@ const sgModeSelect = document.getElementById("sgModeSelect");
 // Tooltip
 const sgInfoBtn = document.getElementById("sgInfoBtn");
 const sgTooltip = document.getElementById("sgTooltip");
+
+// Friends modal
+const addFriendBtn = document.getElementById("addFriendBtn");
+const friendModal = document.getElementById("friendModal");
+const friendNameInput = document.getElementById("friendNameInput");
+const friendCancelBtn = document.getElementById("friendCancelBtn");
+const friendAddBtn = document.getElementById("friendAddBtn");
 
 // Chart
 const canvas = document.getElementById("flowChart");
@@ -84,16 +93,27 @@ function renderSummary(){
   setText(grossRankEl, DASH.summary.grossRank);
   setText(oddsTextEl, DASH.summary.oddsText);
   setText(handicapValueEl, DASH.summary.handicapValue);
+  setText(parStreakEl, DASH.summary.parStreakLine);
   setText(friendLine1El, DASH.summary.friendLine1);
   setText(friendLine2El, DASH.summary.friendLine2);
 }
 
-function renderChips(container, items){
+function renderChipsWithHighlight(container, items){
+  const prev = Array.from(container.querySelectorAll(".chip")).map(el => el.textContent);
   container.innerHTML = "";
-  items.forEach(it => {
+
+  items.forEach((it, idx) => {
     const span = document.createElement("span");
     span.className = "chip";
-    span.textContent = `${it.value} · ${it.hole}`;
+    const text = `${it.value} · ${it.hole}`;
+    span.textContent = text;
+
+    // highlight if changed vs same index previous
+    if (prev[idx] && prev[idx] !== text) {
+      span.classList.add("changed");
+      window.setTimeout(() => span.classList.remove("changed"), 600);
+    }
+
     container.appendChild(span);
   });
 }
@@ -102,8 +122,8 @@ let currentMode = "gross";
 
 function renderForMode(mode){
   const cfg = DASH.sgModes[mode] || DASH.sgModes.gross;
-  renderChips(gainedWrap, cfg.gained);
-  renderChips(lostWrap, cfg.lost);
+  renderChipsWithHighlight(gainedWrap, cfg.gained);
+  renderChipsWithHighlight(lostWrap, cfg.lost);
   drawChartAnimated(cfg.flow);
 }
 
@@ -116,7 +136,7 @@ sectionSelect.onchange = () => {
   }
 };
 
-// --------- sg view dropdown ----------
+// --------- SG view dropdown ----------
 sgModeSelect.onchange = () => {
   currentMode = sgModeSelect.value;
   if (sections.today.classList.contains("active")) {
@@ -137,15 +157,39 @@ function toggleTooltip(){
     sgTooltip.setAttribute("aria-hidden", "false");
   }
 }
-
 sgInfoBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   toggleTooltip();
 });
-
 document.addEventListener("click", () => closeTooltip());
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeTooltip();
+});
+
+// --------- Friends modal ----------
+function openFriendModal(){
+  friendModal.classList.add("show");
+  friendModal.setAttribute("aria-hidden", "false");
+  friendNameInput.value = "";
+  setTimeout(() => friendNameInput.focus(), 0);
+}
+function closeFriendModal(){
+  friendModal.classList.remove("show");
+  friendModal.setAttribute("aria-hidden", "true");
+}
+addFriendBtn.addEventListener("click", openFriendModal);
+friendCancelBtn.addEventListener("click", closeFriendModal);
+friendModal.addEventListener("click", (e) => {
+  if (e.target === friendModal) closeFriendModal();
+});
+friendAddBtn.addEventListener("click", () => {
+  const name = friendNameInput.value.trim();
+  // Prototype only: no persistence.
+  if (!name) return closeFriendModal();
+  // Optionally, update a line to show it worked
+  DASH.summary.friendLine1 = `Added friend: ${name}`;
+  renderSummary();
+  closeFriendModal();
 });
 
 // --------- Chart (your latest style + animation) ----------
@@ -166,7 +210,7 @@ function drawChart(series){
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   const W = cssW, H = cssH;
-  const padL = 36, padR = 10, padT = 12, padB = 18;
+  const padL = 36, padR = 10, padT = 10, padB = 16;
   const yMin = -1, yMax = 1;
 
   ctx.clearRect(0,0,W,H);
@@ -197,11 +241,11 @@ function drawChart(series){
   ctx.fillStyle = "rgba(7,26,51,0.65)";
   for (let i = 0; i < 18; i++){
     const x = x0 + xStep * i;
-    ctx.fillText(String(i + 1), x - 4, H - 4);
+    ctx.fillText(String(i + 1), x - 4, H - 2);
   }
 
-  // line
-  ctx.lineWidth = 2;
+  // line (slightly thicker)
+  ctx.lineWidth = 3; /* requested */
   ctx.strokeStyle = "rgba(7,26,51,0.92)";
   ctx.beginPath();
   data.forEach((v, i) => {
@@ -218,7 +262,7 @@ function drawChart(series){
     const x = x0 + xStep * i;
     const y = yToPx(v);
     ctx.beginPath();
-    ctx.arc(x, y, 2.3, 0, Math.PI * 2);
+    ctx.arc(x, y, 2.2, 0, Math.PI * 2);
     ctx.fill();
   });
 }
@@ -227,10 +271,8 @@ function drawChartAnimated(nextSeries){
   const target = Array.isArray(nextSeries) ? nextSeries.slice() : [];
   if (target.length !== 18) return drawChart(target);
 
-  // Cancel any in-flight animation
   if (animRaf) cancelAnimationFrame(animRaf);
 
-  // Seed lastSeries (first run)
   if (!lastSeries || lastSeries.length !== 18){
     lastSeries = target.slice();
     return drawChart(lastSeries);
@@ -238,13 +280,12 @@ function drawChartAnimated(nextSeries){
 
   const start = lastSeries.slice();
   const end = target.slice();
-  const duration = 380; // ms
+  const duration = 420;
   const t0 = performance.now();
 
   const step = (now) => {
     const t = Math.min(1, (now - t0) / duration);
     const e = easeOutCubic(t);
-
     const frame = start.map((sv, i) => sv + (end[i] - sv) * e);
     drawChart(frame);
 
@@ -253,7 +294,7 @@ function drawChartAnimated(nextSeries){
     } else {
       lastSeries = end.slice();
       animRaf = null;
-      drawChart(lastSeries); // final crisp draw
+      drawChart(lastSeries);
     }
   };
 
@@ -268,7 +309,6 @@ window.onload = () => {
 
 window.onresize = () => {
   if (sections.today.classList.contains("active")) {
-    // redraw without anim on resize
     const cfg = DASH.sgModes[currentMode] || DASH.sgModes.gross;
     lastSeries = cfg.flow.slice();
     drawChart(lastSeries);

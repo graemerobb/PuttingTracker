@@ -16,11 +16,13 @@ body{
   font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
-  overflow:hidden;
+  overflow-y:auto;  /* enable vertical scroll */
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
 }
 
 .app{
-  height:100vh;
+  min-height:100vh;
   padding: env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 84px) 14px;
   display:flex;
   flex-direction:column;
@@ -108,6 +110,12 @@ body{
   background: rgba(255,255,255,0.55);
   white-space:nowrap;
   flex: 0 1 auto;
+  transition: background-color 260ms ease, border-color 260ms ease, transform 260ms ease;
+}
+.chip.changed{
+  background: rgba(255, 214, 102, 0.45);
+  border-color: rgba(230, 170, 40, 0.55);
+  transform: translateY(-1px);
 }
 @media(max-width:390px){
   .chip{
@@ -117,33 +125,33 @@ body{
   }
 }
 
-/* Personal targets */
+/* Personal targets (reduced vertical space) */
 .targets{
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:6px; /* tighter */
 }
 .targetRow{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:11px 12px;
+  padding:8px 10px; /* tighter */
   border-radius:12px;
   border:1px solid rgba(7,26,51,0.2);
   background:#fff;
 }
 .targetRow.ok{
-  background:rgba(20,120,70,0.09);
+  background:rgba(20,120,70,0.08);
   border-color:rgba(20,120,70,0.35);
 }
 .targetRow.bad{
-  background:rgba(170,40,60,0.09);
+  background:rgba(170,40,60,0.08);
   border-color:rgba(170,40,60,0.35);
 }
-.tLabel{ font-size:14px; font-weight:650; }
+.tLabel{ font-size:13px; font-weight:650; }
 .tStatus{
-  font-size:13px;
-  padding:7px 11px;
+  font-size:12px;
+  padding:6px 10px; /* tighter */
   border-radius:999px;
   border:1px solid rgba(7,26,51,0.25);
   background:#fff;
@@ -153,7 +161,7 @@ body{
 .chartWrap{ padding:6px; }
 canvas{
   width:100%;
-  height:100px; /* requested */
+  height:100px;
   border-radius:12px;
   border:1px solid rgba(7,26,51,0.18);
   background:rgba(7,26,51,0.04);
@@ -224,6 +232,97 @@ canvas{
 }
 .tooltip.show{ display:block; }
 
+/* Friends header + add button */
+.h3RowLeft{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.addBtn{
+  width:26px;
+  height:26px;
+  border-radius:10px;
+  border:1px solid rgba(7,26,51,0.22);
+  background: rgba(255,255,255,0.75);
+  color: rgba(7,26,51,0.92);
+  font-weight:900;
+  font-size:16px;
+  line-height:1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  user-select:none;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.addBtn:active{ transform:translateY(1px); }
+
+/* Modal (add friend) */
+.modalOverlay{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,0.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+  z-index: 60;
+}
+.modalOverlay.show{ display:flex; }
+
+.modal{
+  width:min(520px, 100%);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+}
+.modalTitle{
+  font-size:16px;
+  font-weight:900;
+  margin-bottom:10px;
+}
+.modalBody p{
+  font-size:14px;
+  line-height:1.35;
+  margin:0 0 10px 0;
+}
+.modalField label{
+  display:block;
+  font-size:12px;
+  color: rgba(7,26,51,0.7);
+  margin-bottom:6px;
+}
+.modalField input{
+  width:100%;
+  font-size:16px; /* prevent iOS zoom */
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(7,26,51,0.22);
+  outline:none;
+}
+.modalActions{
+  margin-top:14px;
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+}
+.modalBtn{
+  border:1px solid rgba(7,26,51,0.35);
+  background: var(--ink);
+  color:#fff;
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:14px;
+  cursor:pointer;
+}
+.modalBtn.secondary{
+  background: transparent;
+  color: var(--ink);
+}
+.modalBtn:active{ transform:translateY(1px); }
+
 /* Bottom bar */
 .bottomBar{
   position:fixed;
@@ -247,11 +346,11 @@ canvas{
   margin-bottom:5px;
 }
 .bottomBar select{
-  font-size:16px; /* prevent iOS zoom */
+  font-size:16px;
   padding:9px 12px;
   border-radius:12px;
   background:rgba(255,255,255,0.06);
   color:var(--text);
   border:1px solid rgba(255,255,255,0.35);
-  max-width: 220px;
+  max-width: 240px;
 }
