@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>MicScore Stats</title>
+  <title>MiScore Stats</title>
   <link rel="stylesheet" href="dash-styles.css" />
 </head>
 <body>
   <div class="app">
     <div class="header">
-      <div class="title">Welcome to MicScore Stats</div>
+      <div class="title">Welcome to MiScore Stats</div>
     </div>
 
     <div class="controls">
@@ -41,7 +41,7 @@
         <div class="grid2">
           <div class="panel grey">
             <h3 class="h3Row">
-              <span>Strokes gained</span>
+              <span>Gains</span>
 
               <span class="infoWrap">
                 <button class="infoBtn" id="sgInfoBtn" aria-label="Strokes gained info" type="button">i</button>
@@ -57,13 +57,18 @@
           </div>
 
           <div class="panel grey">
-            <h3>Strokes lost</h3>
+            <h3>Losses</h3>
             <div class="chiprow" id="sgLostChips"></div>
           </div>
         </div>
 
         <div class="panel">
-          <h3>Today’s round flow</h3>
+          <h3 class="h3Row">
+            <span>Today’s round</span>
+            <span class="infoWrap">
+              <button class="infoBtn" id="sgInfoBtn2" aria-label="Strokes gained info" type="button">i</button>
+            </span>
+          </h3>
           <div class="chartWrap">
             <canvas id="flowChart"></canvas>
           </div>
@@ -71,20 +76,12 @@
 
         <div class="grid2">
           <div class="panel grey">
-            <h3>Personal targets</h3>
-            <div class="targets">
-              <div class="targetRow ok">
-                <span class="tLabel">No doubles</span>
-                <span class="tStatus">Success</span>
-              </div>
-              <div class="targetRow bad">
-                <span class="tLabel">No 3 putts</span>
-                <span class="tStatus">Fail</span>
-              </div>
-              <div class="targetRow ok">
-                <span class="tLabel">No bogies on par 5s</span>
-                <span class="tStatus">Success</span>
-              </div>
+            <h3 class="h3Row">
+              <span>Personal targets</span>
+              <button class="addBtn" id="addTargetBtn" aria-label="Add target" type="button">+</button>
+            </h3>
+            <div class="targets" id="targetsWrap">
+              <!-- rendered by JS -->
             </div>
           </div>
 
@@ -103,11 +100,6 @@
 
       <!-- PERFORMANCE -->
       <div class="section" id="sec-performance">
-        <div class="panel">
-          <h3>My Performance</h3>
-          <p class="subtle">Just the facts. Trends from recent rounds.</p>
-        </div>
-
         <div class="panel grey">
           <div class="rowHeader">
             <h3 style="margin:0;">Last <span id="perfRoundsN">20</span> rounds</h3>
@@ -142,7 +134,7 @@
             <canvas id="varianceChart"></canvas>
           </div>
           <div class="miniNote">
-            Bell curve with skew. Center line at your average gross.
+            Distribution of scores over the period.
           </div>
         </div>
 
@@ -278,12 +270,33 @@
     </div>
   </div>
 
+  <!-- Add target modal -->
+  <div class="modalOverlay" id="targetModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="targetModalTitle">
+      <div class="modalTitle" id="targetModalTitle">Add a target</div>
+      <div class="modalBody">
+        <p>Enter a new target (read-only prototype).</p>
+        <div class="modalField">
+          <label for="targetTextInput">Target</label>
+          <input id="targetTextInput" type="text" placeholder="e.g. No 3 putts" inputmode="text" autocomplete="off" />
+        </div>
+      </div>
+      <div class="modalActions">
+        <button class="modalBtn secondary" id="targetCancelBtn" type="button">Cancel</button>
+        <button class="modalBtn" id="targetAddBtn" type="button">Add</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Insight modal -->
   <div class="modalOverlay" id="perfInsightModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="perfInsightTitle">
       <div class="modalTitle" id="perfInsightTitle">Insight</div>
       <div class="modalBody">
-        <p><strong>Left skew:</strong> You might be giving up too much.</p>
+        <p id="perfInsightText">
+          Your distribution leans to the left, this means that your low scores are worse than your good scores are good.
+          Consider trying to grind out more points on a good day, to raise your average.
+        </p>
       </div>
       <div class="modalActions">
         <button class="modalBtn" id="perfInsightCloseBtn" type="button">Close</button>

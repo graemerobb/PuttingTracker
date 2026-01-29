@@ -6,7 +6,12 @@ const DASH = {
     handicapValue: 4,
     parStreakLine: "6 hole par streak - 3th through 9th",
     friendLine1: "You beat Bryan by 6 shots on hole 3. He got an 8.",
-    friendLine2: "You had the most birdies today."
+    friendLine2: "You had the most birdies today.",
+    targets: [
+      { text: "No doubles", status: "Pass", ok: true },
+      { text: "No 3 putts", status: "Fail", ok: false },
+      { text: "No bogies on par 5s", status: "Pass", ok: true }
+    ]
   },
 
   sgModes: {
@@ -40,13 +45,15 @@ const DASH = {
   },
 
   performance: {
-    roundsDefault: 20,
     last20: {
       avgGross: "79.4",
-      varRange: "74–88",
-      bell: { // simple shape + center line position (0..1)
-        center: 0.52,
-        points: [0.05,0.08,0.12,0.18,0.28,0.40,0.55,0.72,0.88,1.00,0.92,0.78,0.60,0.44,0.32,0.24,0.18,0.14,0.11,0.09,0.08]
+      varRange: "72–87",
+      distribution: {
+        min: 72,
+        max: 87,
+        mean: 78,
+        // intentionally left-skewed (worse low tail)
+        points: [0.10,0.13,0.18,0.25,0.34,0.46,0.60,0.76,0.90,1.00,0.92,0.78,0.60,0.44,0.32,0.24,0.18,0.14,0.11,0.09,0.08]
       },
       badHoles: [
         { hole: "6th", desc: "average 4.2", sg: "-1.2", note: "for 4 handicap" },
@@ -65,14 +72,14 @@ const DASH = {
       badStarts: { n: 3, outOf: 20, desc: "+6 through 3" },
       afterDbl: "+0.3",
       streaks: {
-        birdie: { len: 3, linkLabel: "view round" },
-        bogey: { len: 5, occ: 5, linkLabel: "view round" }
+        birdie: { len: 3 },
+        bogey: { len: 5, occ: 5 }
       }
     },
     last10: {
       avgGross: "80.1",
-      varRange: "76–86",
-      bell: { center: 0.55, points: [0.06,0.09,0.14,0.22,0.34,0.48,0.62,0.80,0.95,1.00,0.90,0.74,0.55,0.40,0.30,0.22,0.17,0.13,0.10,0.08,0.07] },
+      varRange: "72–87",
+      distribution: { min: 72, max: 87, mean: 78, points: [0.12,0.16,0.22,0.30,0.41,0.55,0.70,0.84,0.95,1.00,0.90,0.74,0.55,0.40,0.30,0.22,0.17,0.13,0.10,0.08,0.07] },
       badHoles: [
         { hole: "8th", desc: "average 6.1", sg: "-0.9", note: "" },
         { hole: "12th", desc: "average 5.4", sg: "-0.6", note: "" }
@@ -88,14 +95,14 @@ const DASH = {
       badStarts: { n: 2, outOf: 10, desc: "+6 through 3" },
       afterDbl: "+0.4",
       streaks: {
-        birdie: { len: 2, linkLabel: "view round" },
-        bogey: { len: 4, occ: 3, linkLabel: "view round" }
+        birdie: { len: 2 },
+        bogey: { len: 4, occ: 3 }
       }
     },
     last50: {
       avgGross: "78.9",
-      varRange: "73–90",
-      bell: { center: 0.50, points: [0.04,0.06,0.09,0.14,0.22,0.35,0.52,0.70,0.88,1.00,0.94,0.82,0.66,0.50,0.38,0.28,0.21,0.16,0.12,0.10,0.09] },
+      varRange: "72–87",
+      distribution: { min: 72, max: 87, mean: 78, points: [0.08,0.10,0.13,0.18,0.26,0.38,0.55,0.72,0.88,1.00,0.94,0.82,0.66,0.50,0.38,0.28,0.21,0.16,0.12,0.10,0.09] },
       badHoles: [
         { hole: "6th", desc: "average 4.2", sg: "-1.1", note: "" },
         { hole: "8th", desc: "average 5.8", sg: "-0.7", note: "" },
@@ -112,8 +119,8 @@ const DASH = {
       badStarts: { n: 6, outOf: 50, desc: "+6 through 3" },
       afterDbl: "+0.3",
       streaks: {
-        birdie: { len: 3, linkLabel: "view round" },
-        bogey: { len: 5, occ: 6, linkLabel: "view round" }
+        birdie: { len: 3 },
+        bogey: { len: 5, occ: 6 }
       }
     }
   }
@@ -143,12 +150,15 @@ const handicapValueEl = document.getElementById("handicapValue");
 const parStreakEl = document.getElementById("parStreakLine");
 const friendLine1El = document.getElementById("friendLine1");
 const friendLine2El = document.getElementById("friendLine2");
+const targetsWrap = document.getElementById("targetsWrap");
+
 const gainedWrap = document.getElementById("sgGainedChips");
 const lostWrap = document.getElementById("sgLostChips");
 const sgModeSelect = document.getElementById("sgModeSelect");
 
 // Tooltip (today)
 const sgInfoBtn = document.getElementById("sgInfoBtn");
+const sgInfoBtn2 = document.getElementById("sgInfoBtn2");
 const sgTooltip = document.getElementById("sgTooltip");
 
 // Friends modal
@@ -157,6 +167,13 @@ const friendModal = document.getElementById("friendModal");
 const friendNameInput = document.getElementById("friendNameInput");
 const friendCancelBtn = document.getElementById("friendCancelBtn");
 const friendAddBtn = document.getElementById("friendAddBtn");
+
+// Targets modal
+const addTargetBtn = document.getElementById("addTargetBtn");
+const targetModal = document.getElementById("targetModal");
+const targetTextInput = document.getElementById("targetTextInput");
+const targetCancelBtn = document.getElementById("targetCancelBtn");
+const targetAddBtn = document.getElementById("targetAddBtn");
 
 // Performance DOM
 const perfTimeframe = document.getElementById("perfTimeframe");
@@ -192,21 +209,38 @@ const varCtx = varCanvas.getContext("2d");
 // Helpers
 function setText(el, val){ if (el) el.textContent = String(val); }
 
+function renderTargets(){
+  targetsWrap.innerHTML = "";
+  DASH.summary.targets.forEach(t => {
+    const row = document.createElement("div");
+    row.className = `targetRow ${t.ok ? "ok" : "bad"}`;
+
+    const label = document.createElement("span");
+    label.className = "tLabel";
+    label.textContent = t.text;
+
+    const status = document.createElement("span");
+    status.className = "tStatus";
+    status.textContent = t.status;
+
+    row.appendChild(label);
+    row.appendChild(status);
+    targetsWrap.appendChild(row);
+  });
+}
+
 function renderChipsWithHighlight(container, items){
   const prev = Array.from(container.querySelectorAll(".chip")).map(el => el.textContent);
   container.innerHTML = "";
-
   items.forEach((it, idx) => {
     const span = document.createElement("span");
     span.className = "chip";
     const text = `${it.value} · ${it.hole}`;
     span.textContent = text;
-
     if (prev[idx] && prev[idx] !== text) {
       span.classList.add("changed");
       window.setTimeout(() => span.classList.remove("changed"), 650);
     }
-
     container.appendChild(span);
   });
 }
@@ -225,6 +259,7 @@ function renderToday(mode){
   setText(friendLine1El, DASH.summary.friendLine1);
   setText(friendLine2El, DASH.summary.friendLine2);
 
+  renderTargets();
   renderChipsWithHighlight(gainedWrap, cfg.gained);
   renderChipsWithHighlight(lostWrap, cfg.lost);
   drawFlowAnimated(cfg.flow);
@@ -257,6 +292,10 @@ sgInfoBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   toggleTooltipById("sgTooltip");
 });
+sgInfoBtn2.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleTooltipById("sgTooltip");
+});
 
 document.addEventListener("click", () => closeAllTooltips());
 document.addEventListener("keydown", (e) => {
@@ -272,27 +311,49 @@ document.addEventListener("click", (e) => {
 });
 
 // ---- Friends modal
-function openFriendModal(){
-  friendModal.classList.add("show");
-  friendModal.setAttribute("aria-hidden", "false");
+function openModal(overlay){
+  overlay.classList.add("show");
+  overlay.setAttribute("aria-hidden", "false");
+}
+function closeModal(overlay){
+  overlay.classList.remove("show");
+  overlay.setAttribute("aria-hidden", "true");
+}
+
+addFriendBtn.addEventListener("click", () => {
+  openModal(friendModal);
   friendNameInput.value = "";
   setTimeout(() => friendNameInput.focus(), 0);
-}
-function closeFriendModal(){
-  friendModal.classList.remove("show");
-  friendModal.setAttribute("aria-hidden", "true");
-}
-addFriendBtn.addEventListener("click", openFriendModal);
-friendCancelBtn.addEventListener("click", closeFriendModal);
+});
+friendCancelBtn.addEventListener("click", () => closeModal(friendModal));
 friendModal.addEventListener("click", (e) => {
-  if (e.target === friendModal) closeFriendModal();
+  if (e.target === friendModal) closeModal(friendModal);
 });
 friendAddBtn.addEventListener("click", () => {
   const name = friendNameInput.value.trim();
-  if (!name) return closeFriendModal();
+  if (!name) return closeModal(friendModal);
   DASH.summary.friendLine1 = `Added friend: ${name}`;
   renderToday(currentMode);
-  closeFriendModal();
+  closeModal(friendModal);
+});
+
+// ---- Targets modal
+addTargetBtn.addEventListener("click", () => {
+  openModal(targetModal);
+  targetTextInput.value = "";
+  setTimeout(() => targetTextInput.focus(), 0);
+});
+targetCancelBtn.addEventListener("click", () => closeModal(targetModal));
+targetModal.addEventListener("click", (e) => {
+  if (e.target === targetModal) closeModal(targetModal);
+});
+targetAddBtn.addEventListener("click", () => {
+  const text = targetTextInput.value.trim();
+  if (!text) return closeModal(targetModal);
+  // Default to Pass for prototype
+  DASH.summary.targets.push({ text, status: "Pass", ok: true });
+  renderTargets();
+  closeModal(targetModal);
 });
 
 // ---- Performance: timeframe + render
@@ -352,30 +413,20 @@ function renderPerformance(key){
   setText(bogeyStreakEl, data.streaks.bogey.len);
   setText(bogeyOccEl, data.streaks.bogey.occ);
 
-  drawVariance(data.bell);
+  drawVariance(data.distribution);
 }
 
-// Streak links: keep as placeholders
-[birdStreakLink, bogeyStreakLink].forEach(a => {
-  a.addEventListener("click", (e) => e.preventDefault());
-});
+// placeholder links
+[birdStreakLink, bogeyStreakLink].forEach(a => a.addEventListener("click", (e) => e.preventDefault()));
 
-// Performance insight modal
-function openPerfInsight(){
-  perfInsightModal.classList.add("show");
-  perfInsightModal.setAttribute("aria-hidden", "false");
-}
-function closePerfInsight(){
-  perfInsightModal.classList.remove("show");
-  perfInsightModal.setAttribute("aria-hidden", "true");
-}
-insightAvailBtn.addEventListener("click", openPerfInsight);
-perfInsightCloseBtn.addEventListener("click", closePerfInsight);
+// Performance insight modal text already updated in HTML
+insightAvailBtn.addEventListener("click", () => openModal(perfInsightModal));
+perfInsightCloseBtn.addEventListener("click", () => closeModal(perfInsightModal));
 perfInsightModal.addEventListener("click", (e) => {
-  if (e.target === perfInsightModal) closePerfInsight();
+  if (e.target === perfInsightModal) closeModal(perfInsightModal);
 });
 
-// ---- Flow chart: your latest style + animation + thicker line
+// ---- Flow chart: animate + thicker line (your latest style)
 let flowLastSeries = null;
 let flowAnimRaf = null;
 function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
@@ -425,7 +476,7 @@ function drawFlow(series){
     flowCtx.fillText(String(i + 1), x - 4, H - 2);
   }
 
-  // series line (thicker)
+  // series line (slightly thicker)
   flowCtx.lineWidth = 3.6;
   flowCtx.strokeStyle = "rgba(7,26,51,0.92)";
   flowCtx.beginPath();
@@ -482,8 +533,8 @@ function drawFlowAnimated(nextSeries){
   flowAnimRaf = requestAnimationFrame(step);
 }
 
-// ---- Variance chart (bell curve + center line)
-function drawVariance(bell){
+// ---- Variance chart: skew + annotated range 72–87 and mean 78
+function drawVariance(dist){
   const cssW = varCanvas.clientWidth;
   const cssH = varCanvas.clientHeight;
   const dpr = window.devicePixelRatio || 1;
@@ -493,12 +544,18 @@ function drawVariance(bell){
   varCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   const W = cssW, H = cssH;
-  const padL = 14, padR = 14, padT = 10, padB = 18;
+  const padL = 18, padR = 18, padT = 10, padB = 22;
 
   varCtx.clearRect(0,0,W,H);
 
   const x0 = padL, x1 = W - padR;
   const y0 = padT, y1 = H - padB;
+
+  const min = dist.min;
+  const max = dist.max;
+  const mean = dist.mean;
+  const pts = dist.points || [];
+  const maxY = Math.max(...pts, 1);
 
   // baseline
   varCtx.strokeStyle = "rgba(7,26,51,0.18)";
@@ -507,9 +564,6 @@ function drawVariance(bell){
   varCtx.moveTo(x0, y1);
   varCtx.lineTo(x1, y1);
   varCtx.stroke();
-
-  const pts = bell.points || [];
-  const maxY = Math.max(...pts, 1);
 
   // curve
   varCtx.strokeStyle = "rgba(7,26,51,0.92)";
@@ -537,37 +591,45 @@ function drawVariance(bell){
   varCtx.closePath();
   varCtx.fill();
 
-  // center line at average gross (mapped to 0..1)
-  const cx = x0 + (x1 - x0) * (bell.center ?? 0.5);
+  // mean line at score 78 (mapped to min..max)
+  const meanT = (mean - min) / (max - min);
+  const mx = x0 + (x1 - x0) * meanT;
   varCtx.strokeStyle = "rgba(7,26,51,0.45)";
   varCtx.lineWidth = 2;
   varCtx.beginPath();
-  varCtx.moveTo(cx, y0);
-  varCtx.lineTo(cx, y1);
+  varCtx.moveTo(mx, y0);
+  varCtx.lineTo(mx, y1);
   varCtx.stroke();
 
-  // label
+  // x-axis labels: 72 ... 87, plus mean 78
   varCtx.fillStyle = "rgba(7,26,51,0.65)";
   varCtx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-  varCtx.fillText("avg", Math.max(6, cx - 10), y0 + 12);
+  varCtx.fillText(String(min), x0 - 2, H - 4);
+  varCtx.fillText(String(max), x1 - 18, H - 4);
+
+  // mean label
+  varCtx.fillStyle = "rgba(7,26,51,0.8)";
+  varCtx.fillText(String(mean), Math.max(x0, mx - 10), y0 + 12);
 }
 
 // ---- Init
+let currentPerfKey = "last20";
+
 window.onload = () => {
   renderToday(currentMode);
+
   perfTimeframe.value = "20";
   currentPerfKey = "last20";
   renderPerformance(currentPerfKey);
 };
 
 window.onresize = () => {
-  // redraw visible charts
   if (sections.today.classList.contains("active")) {
     const cfg = DASH.sgModes[currentMode] || DASH.sgModes.gross;
     flowLastSeries = cfg.flow.slice();
     drawFlow(flowLastSeries);
   }
   if (sections.performance.classList.contains("active")) {
-    drawVariance(DASH.performance[currentPerfKey].bell);
+    drawVariance(DASH.performance[currentPerfKey].distribution);
   }
 };
