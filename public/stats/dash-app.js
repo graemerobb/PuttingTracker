@@ -162,7 +162,7 @@ function drawChart(series){
 
   const W = cssW, H = cssH;
   const padL = 36, padR = 10, padT = 12, padB = 28;
-  const yMin = -3, yMax = 3;
+  const yMin = -1, yMax = 1;
 
   ctx.clearRect(0,0,W,H);
 
@@ -189,7 +189,7 @@ function drawChart(series){
   // y-axis labels (no grid)
   ctx.fillStyle = "rgba(7,26,51,0.65)";
   ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-  for (let gv = -3; gv <= 3; gv++){
+  for (let gv = -1; gv <= 1; gv++){
     const y = yToPx(gv);
     ctx.fillText(String(gv), 6, y + 4);
   }
@@ -204,11 +204,11 @@ function drawChart(series){
  
 
   // y axis label
-  ctx.save();
-  ctx.translate(16, (y0 + y1) / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.fillText("sg", 0, 0);
-  ctx.restore();
+  //ctx.save();
+  //ctx.translate(16, (y0 + y1) / 2);
+  //ctx.rotate(-Math.PI / 2);
+  //ctx.fillText("sg", 0, 0);
+  //ctx.restore();
 
   // line
   ctx.lineWidth = 2;
