@@ -17,7 +17,7 @@
         <label for="sectionSelect">View</label>
         <select id="sectionSelect">
           <option value="today" selected>Today’s round</option>
-          <option value="insights">My Insights</option>
+          <option value="performance">My Performance</option>
           <option value="group">Group insights</option>
           <option value="workouts">Golf workouts</option>
         </select>
@@ -41,7 +41,7 @@
         <div class="grid2">
           <div class="panel grey">
             <h3 class="h3Row">
-              <span>Gains</span>
+              <span>Strokes gained</span>
 
               <span class="infoWrap">
                 <button class="infoBtn" id="sgInfoBtn" aria-label="Strokes gained info" type="button">i</button>
@@ -57,7 +57,7 @@
           </div>
 
           <div class="panel grey">
-            <h3>Losses</h3>
+            <h3>Strokes lost</h3>
             <div class="chiprow" id="sgLostChips"></div>
           </div>
         </div>
@@ -101,11 +101,144 @@
         </div>
       </div>
 
-      <!-- INSIGHTS -->
-      <div class="section" id="sec-insights">
+      <!-- PERFORMANCE -->
+      <div class="section" id="sec-performance">
         <div class="panel">
-          <h3>My Insights</h3>
-          <p>Insights based on your scoring history and trends.</p>
+          <h3>My Performance</h3>
+          <p class="subtle">Just the facts. Trends from recent rounds.</p>
+        </div>
+
+        <div class="panel grey">
+          <div class="rowHeader">
+            <h3 style="margin:0;">Last <span id="perfRoundsN">20</span> rounds</h3>
+            <div class="rowHeaderRight">
+              <label for="perfTimeframe" class="miniLabel">Timeframe</label>
+              <select id="perfTimeframe" class="miniSelect" aria-label="Change time frame">
+                <option value="20" selected>Last 20</option>
+                <option value="10">Last 10</option>
+                <option value="50">Last 50</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="factsGrid">
+            <div class="fact">
+              <div class="factLabel">Average gross</div>
+              <div class="factValue" id="avgGross">79.4</div>
+            </div>
+            <div class="fact">
+              <div class="factLabel">Variance range</div>
+              <div class="factValue" id="varRange">74–88</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="rowHeader">
+            <h3 style="margin:0;">Variance</h3>
+            <button class="outlineBtn" id="insightAvailBtn" type="button">Insight available</button>
+          </div>
+          <div class="chartWrap">
+            <canvas id="varianceChart"></canvas>
+          </div>
+          <div class="miniNote">
+            Bell curve with skew. Center line at your average gross.
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel grey">
+            <h3>Bad holes</h3>
+            <div class="list" id="badHolesList"></div>
+          </div>
+
+          <div class="panel grey">
+            <h3>Good holes</h3>
+            <div class="list" id="goodHolesList"></div>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel grey">
+            <h3>Scoring</h3>
+            <div class="list">
+              <div class="listRow">
+                <span>Double bogey average</span>
+                <span><strong id="dblAvg">2.2</strong> / round</span>
+              </div>
+              <div class="listRow subtleRow">
+                <span>Target</span>
+                <span><strong id="dblTarget">1.2</strong></span>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="listRow">
+                <span>Birdie average</span>
+                <span><strong id="birdAvg">1.1</strong> / round</span>
+              </div>
+              <div class="listRow subtleRow">
+                <span>Target</span>
+                <span><strong id="birdTarget">1.6</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel grey">
+            <h3>Flow facts</h3>
+            <div class="list">
+              <div class="listRow">
+                <span>Bad starts</span>
+                <span><strong id="badStarts">3</strong>/<span id="badStartsOutOf">20</span> rounds (+6 through 3)</span>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="listRow">
+                <span class="withInfo">
+                  Avg score after double bogey
+                  <span class="infoWrap">
+                    <button class="infoBtn small" data-tooltip="afterDblTip" type="button">i</button>
+                    <span class="tooltip" id="afterDblTip" aria-hidden="true">
+                      You had <strong>6</strong> doubles. Average response is <strong>+0.3</strong>.
+                      <br><br>
+                      Birdie following a double is currently good.
+                    </span>
+                  </span>
+                </span>
+                <span><strong id="afterDbl">+0.3</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel grey">
+          <h3>Streaks</h3>
+          <div class="list">
+            <div class="listRow">
+              <span>Longest birdie streak</span>
+              <span><strong id="birdStreak">3</strong> <a class="miniLink" href="#" id="birdStreakLink">view round</a></span>
+            </div>
+            <div class="listRow">
+              <span class="withInfo">
+                Longest bogey streak
+                <span class="infoWrap">
+                  <button class="infoBtn small" data-tooltip="bogeyStreakTip" type="button">i</button>
+                  <span class="tooltip" id="bogeyStreakTip" aria-hidden="true">
+                    This is typically a “momentum leak”. Consider guardrails after the first bogey.
+                  </span>
+                </span>
+              </span>
+              <span>
+                <strong id="bogeyStreak">5</strong>
+                <a class="miniLink" href="#" id="bogeyStreakLink">view round</a>
+              </span>
+            </div>
+            <div class="listRow subtleRow">
+              <span>Occurrences</span>
+              <span><strong id="bogeyOcc">5</strong></span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -141,6 +274,19 @@
       <div class="modalActions">
         <button class="modalBtn secondary" id="friendCancelBtn" type="button">Cancel</button>
         <button class="modalBtn" id="friendAddBtn" type="button">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insight modal -->
+  <div class="modalOverlay" id="perfInsightModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="perfInsightTitle">
+      <div class="modalTitle" id="perfInsightTitle">Insight</div>
+      <div class="modalBody">
+        <p><strong>Left skew:</strong> You might be giving up too much.</p>
+      </div>
+      <div class="modalActions">
+        <button class="modalBtn" id="perfInsightCloseBtn" type="button">Close</button>
       </div>
     </div>
   </div>

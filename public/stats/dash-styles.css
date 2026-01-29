@@ -16,7 +16,7 @@ body{
   font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
-  overflow-y:auto;  /* enable vertical scroll */
+  overflow-y:auto;
   overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
 }
@@ -46,7 +46,7 @@ body{
   margin-right:8px;
 }
 .controls select{
-  font-size:16px; /* prevent iOS zoom */
+  font-size:16px;
   padding:9px 12px;
   border-radius:12px;
   background:rgba(255,255,255,0.06);
@@ -55,7 +55,6 @@ body{
 }
 
 .main{
-  flex:1;
   display:flex;
   flex-direction:column;
   gap:12px;
@@ -83,6 +82,8 @@ body{
 }
 .panel p:last-child{ margin-bottom:0; }
 
+.subtle{ color: rgba(7,26,51,0.7); }
+
 .grid2{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -95,7 +96,7 @@ body{
 .section{ display:none; gap:12px; flex-direction:column; }
 .section.active{ display:flex; }
 
-/* Chips: keep in ONE ROW */
+/* Chips */
 .chiprow{
   display:flex;
   gap:6px;
@@ -109,7 +110,6 @@ body{
   border:1px solid rgba(7,26,51,0.25);
   background: rgba(255,255,255,0.55);
   white-space:nowrap;
-  flex: 0 1 auto;
   transition: background-color 260ms ease, border-color 260ms ease, transform 260ms ease;
 }
 .chip.changed{
@@ -118,40 +118,26 @@ body{
   transform: translateY(-1px);
 }
 @media(max-width:390px){
-  .chip{
-    max-width: 33%;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
+  .chip{ max-width: 33%; overflow:hidden; text-overflow:ellipsis; }
 }
 
-/* Personal targets (reduced vertical space) */
-.targets{
-  display:flex;
-  flex-direction:column;
-  gap:6px; /* tighter */
-}
+/* Targets (compact) */
+.targets{ display:flex; flex-direction:column; gap:6px; }
 .targetRow{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  padding:8px 10px; /* tighter */
+  padding:8px 10px;
   border-radius:12px;
   border:1px solid rgba(7,26,51,0.2);
   background:#fff;
 }
-.targetRow.ok{
-  background:rgba(20,120,70,0.08);
-  border-color:rgba(20,120,70,0.35);
-}
-.targetRow.bad{
-  background:rgba(170,40,60,0.08);
-  border-color:rgba(170,40,60,0.35);
-}
+.targetRow.ok{ background:rgba(20,120,70,0.08); border-color:rgba(20,120,70,0.35); }
+.targetRow.bad{ background:rgba(170,40,60,0.08); border-color:rgba(170,40,60,0.35); }
 .tLabel{ font-size:13px; font-weight:650; }
 .tStatus{
   font-size:12px;
-  padding:6px 10px; /* tighter */
+  padding:6px 10px;
   border-radius:999px;
   border:1px solid rgba(7,26,51,0.25);
   background:#fff;
@@ -167,21 +153,15 @@ canvas{
   background:rgba(7,26,51,0.04);
 }
 
-/* Header row with tooltip */
+/* Tooltip */
 .h3Row{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:10px;
 }
-.infoWrap{
-  position:relative;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-}
+.infoWrap{ position:relative; display:inline-flex; align-items:center; gap:8px; }
 
-/* Tooltip-style info button */
 .infoBtn{
   width:22px;
   height:22px;
@@ -199,9 +179,15 @@ canvas{
   user-select:none;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
+.infoBtn.small{
+  width:18px;
+  height:18px;
+  font-size:11px;
+  border-radius:8px;
+  box-shadow:none;
+}
 .infoBtn:active{ transform:translateY(1px); }
 
-/* Tooltip bubble */
 .tooltip{
   position:absolute;
   right:0;
@@ -232,12 +218,13 @@ canvas{
 }
 .tooltip.show{ display:block; }
 
-/* Friends header + add button */
-.h3RowLeft{
-  display:flex;
+.withInfo{
+  display:inline-flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
 }
+
+/* Friends add button */
 .addBtn{
   width:26px;
   height:26px;
@@ -257,7 +244,87 @@ canvas{
 }
 .addBtn:active{ transform:translateY(1px); }
 
-/* Modal (add friend) */
+/* Performance layout helpers */
+.rowHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.rowHeaderRight{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.miniLabel{
+  font-size:11px;
+  color: rgba(7,26,51,0.65);
+}
+.miniSelect{
+  font-size:16px;
+  padding:7px 10px;
+  border-radius:12px;
+  border:1px solid rgba(7,26,51,0.22);
+  background: rgba(255,255,255,0.65);
+  color: var(--ink);
+}
+.factsGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+.fact{
+  border:1px solid rgba(7,26,51,0.18);
+  border-radius:12px;
+  background: rgba(255,255,255,0.6);
+  padding:10px;
+}
+.factLabel{ font-size:12px; color: rgba(7,26,51,0.62); margin-bottom:4px; }
+.factValue{ font-size:16px; font-weight:900; }
+
+.miniNote{
+  margin-top:8px;
+  font-size:12px;
+  color: rgba(7,26,51,0.65);
+}
+
+.list{ display:flex; flex-direction:column; gap:10px; }
+.listRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  font-size:13px;
+}
+.subtleRow{ color: rgba(7,26,51,0.65); }
+.divider{
+  height:1px;
+  background: rgba(7,26,51,0.14);
+  margin: 4px 0;
+}
+
+.miniLink{
+  color: rgba(7,26,51,0.92);
+  text-decoration: underline;
+  font-size:12px;
+  margin-left:8px;
+}
+
+/* Outline button */
+.outlineBtn{
+  border:1px solid rgba(7,26,51,0.35);
+  background: transparent;
+  color: rgba(7,26,51,0.92);
+  padding:8px 10px;
+  border-radius:12px;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+.outlineBtn:active{ transform:translateY(1px); }
+
+/* Modal */
 .modalOverlay{
   position:fixed;
   inset:0;
@@ -296,7 +363,7 @@ canvas{
 }
 .modalField input{
   width:100%;
-  font-size:16px; /* prevent iOS zoom */
+  font-size:16px;
   padding:10px 12px;
   border-radius:12px;
   border:1px solid rgba(7,26,51,0.22);
@@ -338,7 +405,6 @@ canvas{
   background:rgba(7,26,51,0.95);
   border-top:1px solid rgba(255,255,255,0.18);
 }
-
 .bottomBar label{
   font-size:11px;
   color:rgba(255,255,255,0.68);
