@@ -177,24 +177,31 @@ function drawChart(series){
   ctx.fillStyle = "rgba(7,26,51,0.65)";
   ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
 
+  // zero line only
+  const yZero = yToPx(0);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(7,26,51,0.35)";
+  ctx.beginPath();
+  ctx.moveTo(x0, yZero);
+  ctx.lineTo(x1, yZero);
+  ctx.stroke();
+
+  // y-axis labels (no grid)
+  ctx.fillStyle = "rgba(7,26,51,0.65)";
+  ctx.font = "12px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
   for (let gv = -3; gv <= 3; gv++){
     const y = yToPx(gv);
-    ctx.beginPath();
-    ctx.moveTo(x0, y);
-    ctx.lineTo(x1, y);
-    ctx.stroke();
     ctx.fillText(String(gv), 6, y + 4);
   }
 
-  // x grid + hole labels (1–18)
+  // x labels only (no vertical grid)
+  ctx.fillStyle = "rgba(7,26,51,0.65)";
   for (let i = 0; i < 18; i++){
     const x = x0 + xStep * i;
-    ctx.beginPath();
-    ctx.moveTo(x, y0);
-    ctx.lineTo(x, y1);
-    ctx.stroke();
     ctx.fillText(String(i + 1), x - 4, H - 6);
   }
+
+ 
 
   // y axis label
   ctx.save();
