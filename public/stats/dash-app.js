@@ -613,7 +613,7 @@ function drawVariance(dist){
 }
 
 // ---- Init
-let currentPerfKey = "last20";
+ currentPerfKey = "last20";
 
 window.onload = () => {
   renderToday(currentMode);
