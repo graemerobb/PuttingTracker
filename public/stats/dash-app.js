@@ -631,8 +631,11 @@ function drawVariance(dist){
   varCtx.fillText(String(max), x1 - 18, H - 4);
 
   // mean label
+  // mean label on x-axis
   varCtx.fillStyle = "rgba(7,26,51,0.8)";
-  varCtx.fillText(String(mean), Math.max(x0, mx - 10), y0 + 12);
+  varCtx.textAlign = "center";
+  varCtx.textBaseline = "top";
+  varCtx.fillText(String(mean), mx, y1 + 4);
 }
 
 // ---- Init
